@@ -1,5 +1,5 @@
-const STATIC_CACHE = 'kbwg-petfinder-static-v2';
-const RUNTIME_CACHE = 'kbwg-petfinder-runtime-v2';
+const STATIC_CACHE = 'kbwg-petfinder-static-v3';
+const RUNTIME_CACHE = 'kbwg-petfinder-runtime-v3';
 const SYNC_DB_NAME = 'petconnect-sync-db';
 const SYNC_STORE = 'pending-json-posts';
 const RUNTIME_HOSTS = new Set([
@@ -20,7 +20,10 @@ const PRECACHE_URLS = [
   './favicon.svg',
   './icon-192.png',
   './icon-512.png',
+  './css/main.css',
   './assets/css/styles.css',
+  './assets/css/home.css',
+  './assets/css/petfinder-kbwg.css',
   './petconnect-assets/styles.scoped.css',
   './assets/js/layout-inject.js',
   './assets/js/site.js',
@@ -50,7 +53,7 @@ const PET_EXACT_ASSETS = new Set([
   '/data/library.json',
 ]);
 const PET_PREFIXES = ['/petconnect-assets/'];
-const PET_KBWG_ASSET_PREFIXES = ['/assets/css/styles.css', '/assets/js/layout-inject.js', '/assets/js/site.js'];
+const PET_KBWG_ASSET_PREFIXES = ['/css/main.css', '/assets/css/styles.css', '/assets/css/home.css', '/assets/css/petfinder-kbwg.css', '/assets/js/layout-inject.js', '/assets/js/site.js'];
 
 function normalizedPath(url) {
   return new URL(url).pathname;
@@ -77,7 +80,10 @@ function shouldUseNetworkFirst(request) {
   const url = new URL(request.url);
   if (request.mode === 'navigate') return isPetPagePath(url.pathname);
   if (url.pathname === '/data/library.json') return true;
+  if (url.pathname === '/css/main.css') return true;
   if (url.pathname === '/assets/css/styles.css') return true;
+  if (url.pathname === '/assets/css/home.css') return true;
+  if (url.pathname === '/assets/css/petfinder-kbwg.css') return true;
   if (url.pathname === '/assets/js/layout-inject.js') return true;
   if (url.pathname === '/assets/js/site.js') return true;
   return false;

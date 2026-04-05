@@ -1,0 +1,20 @@
+/*
+  Single source of truth for site look-and-feel.
+  KBWG remains the master visual system for both the core site and the pet-finder pages.
+*/
+@import url("../assets/css/styles.css?v=2026-04-05-v4");
+@import url("../assets/css/home.css?v=2026-04-05-v4");
+@import url("../assets/css/petfinder-kbwg.css?v=2026-04-05-v4");
+
+:root{
+  --site-primary: var(--brand);
+  --site-primary-soft: rgba(42,91,154,.12);
+  --site-surface: var(--paper);
+  --site-text: var(--ink);
+  --site-font: var(--he-font);
+}
+
+body{
+  color: var(--site-text);
+  font-family: var(--site-font);
+}

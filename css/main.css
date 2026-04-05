@@ -18,3 +18,145 @@ body{
   color: var(--site-text);
   font-family: var(--site-font);
 }
+
+:root{
+  --kbwg-brand: var(--brand);
+  --kbwg-brand-soft: var(--brand2);
+  --kbwg-dark: #163a63;
+  --kbwg-surface: #ffffff;
+  --kbwg-font: var(--he-font);
+  --kbwg-shadow-soft: 0 10px 28px rgba(15,23,42,.06);
+  --kbwg-shadow-card: 0 18px 42px rgba(15,23,42,.10);
+}
+
+/* Shared hero treatment: reuse the KBWG hero shell on the pet-finder homepage */
+.petconnect-scope .bundleHero .heroCopy p,
+.petconnect-scope .petfinder-master-hero .heroCopy p{
+  max-width: 62ch;
+  margin: .6rem auto 0;
+}
+.petconnect-scope .petfinder-master-hero{
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at top left, rgba(157,195,230,.32), transparent 42%),
+    linear-gradient(180deg, rgba(255,255,255,.98), rgba(246,247,251,.96));
+}
+.petconnect-scope .petfinder-master-hero .heroInner{
+  position: relative;
+  z-index: 1;
+}
+.petconnect-scope .petfinder-master-hero .heroCopy{
+  max-width: 68ch;
+}
+.petconnect-scope .petfinder-master-hero h1{
+  font-size: clamp(2rem, 1.8rem + 1.2vw, 3.2rem);
+  letter-spacing: -.02em;
+}
+.petconnect-scope .petfinder-master-hero .decorPhoto{
+  opacity: .18;
+  filter: saturate(.9);
+}
+.petconnect-scope .petfinder-master-hero .badgeRow{
+  justify-content: center;
+}
+.petconnect-scope .petfinder-master-hero .heroActions{
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+.petconnect-scope .petfinder-master-hero .btn.primary{
+  background: linear-gradient(135deg, var(--kbwg-brand), var(--kbwg-dark));
+}
+.petconnect-scope .petfinder-master-hero .btn.ghost{
+  background: rgba(255,255,255,.94);
+  color: var(--site-text);
+  border: 1px solid rgba(32,58,99,.12);
+  box-shadow: var(--kbwg-shadow-soft);
+}
+.petconnect-scope .petfinder-kbwg-note{
+  margin-top: .9rem;
+  font-weight: 700;
+}
+
+/* Search results: borrow the KBWG bundle card feel for animal entries */
+.petconnect-scope .result-grid{
+  gap: 14px;
+}
+.petconnect-scope .animalCard{
+  display: grid;
+  grid-template-columns: 116px minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+  padding: 12px;
+  border-radius: 18px !important;
+  background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(246,247,251,.96)) !important;
+  border: 1px solid rgba(32,58,99,.08) !important;
+  box-shadow: var(--kbwg-shadow-card) !important;
+}
+.petconnect-scope .animalCard:hover{
+  transform: translateY(-2px);
+  border-color: rgba(32,58,99,.16) !important;
+}
+.petconnect-scope .animalCard .thumb-wrap{
+  width: 116px;
+  min-width: 116px;
+  background: rgba(15,23,42,.03);
+  border-radius: 16px;
+  box-shadow: none;
+}
+.petconnect-scope .animalCard .thumb-wrap img{
+  width: 100%;
+  height: 100%;
+  border-radius: 16px !important;
+  border: 1px solid rgba(32,58,99,.12);
+  box-shadow: none;
+}
+.petconnect-scope .animalCard .body{
+  display: grid;
+  gap: 10px;
+  padding: 2px 0 0;
+}
+.petconnect-scope .animalCard .body > .space-between{
+  align-items: flex-start;
+}
+.petconnect-scope .animalCard strong{
+  font-size: 1.02rem;
+  color: var(--kbwg-dark);
+}
+.petconnect-scope .animalCard .badge{
+  background: rgba(32,58,99,.06);
+  border: 1px solid rgba(32,58,99,.10);
+  color: rgba(15,23,42,.82);
+}
+.petconnect-scope .animalCard .score-pill,
+.petconnect-scope .animalCard .score{
+  background: rgba(32,58,99,.08);
+  color: var(--kbwg-dark);
+}
+.petconnect-scope .animalCard .card-actions{
+  margin-top: 4px;
+}
+.petconnect-scope .animalCard .card-actions .button-link,
+.petconnect-scope .animalCard .card-actions button{
+  min-height: 40px;
+  border-radius: 999px;
+}
+.petconnect-scope .summary-hero{
+  background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(246,247,251,.96));
+  border: 1px solid rgba(32,58,99,.08);
+}
+
+@media (max-width: 760px){
+  .petconnect-scope .petfinder-master-hero h1{
+    font-size: clamp(1.8rem, 1.5rem + 1.8vw, 2.5rem);
+  }
+  .petconnect-scope .animalCard{
+    grid-template-columns: 88px minmax(0, 1fr);
+    gap: 12px;
+  }
+  .petconnect-scope .animalCard .thumb-wrap{
+    width: 88px;
+    min-width: 88px;
+  }
+}

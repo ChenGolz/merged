@@ -1712,7 +1712,7 @@ function renderMatchCards(matches = [], options = {}) {
     const profileButton = target ? `<a class="button-link small" href="${escapeHtml(target)}">פתיחת פרופיל</a>` : '<span class="badge">אין קישור פרופיל</span>';
     const verifyButton = match.verificationPrompt ? `<button class="secondary small" type="button" data-verify-index="${index}">בדיקת סימן זיהוי</button>` : '';
     return `
-      <article class="match-card result-card" data-match-index="${index}">
+      <article class="match-card result-card bundleCard animalCard" data-match-index="${index}">
         ${thumb}
         <div class="body">
           <div class="space-between">

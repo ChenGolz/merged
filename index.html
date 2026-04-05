@@ -9,7 +9,9 @@
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700;800&amp;display=swap" rel="stylesheet"/>
 <link href="assets/css/styles.css?v=2026-02-15-v55" rel="stylesheet"/>
+<link href="assets/css/home.css?v=2026-02-15-v55" rel="stylesheet"/>
 <link href="petconnect-assets/styles.scoped.css?v=2026-04-05-v1" rel="stylesheet"/>
+<link href="assets/css/petfinder-kbwg.css?v=2026-04-05-v2" rel="stylesheet"/>
 <link href="assets/img/logo.png" rel="icon" type="image/png"/>
 <link href="manifest.webmanifest?v=2026-04-05-v2" rel="manifest"/>
 <meta content="#0d4f63" name="theme-color"/>
@@ -20,24 +22,52 @@
 <div class="petconnect-scope"><main class="page unified-page minimalist-homepage">
 
 <input accept="image/*" capture="environment" class="camera-direct-input" id="home-camera-input" type="file"/>
-<section class="hero hero-modern hero-home-card stack high-contrast-card section-shell hero-shell clean-slate-hero">
-<div class="hero-card-shell">
-<div class="hero-kicker">פאטקונקט</div>
-<h1 class="hero-main-title" data-i18n="homeHeadline">איחוד חיות מחמד עם בינה מלאכותית</h1>
-<p class="hero-main-subtitle" data-i18n="homeSubheadline">הדרך המהירה ביותר להחזיר חיות מחמד הביתה בעזרת זיהוי תמונה חכם.</p>
-<div class="hero-actions hero-actions-grid big-two-actions">
-<a class="action-hero-card lost btn-action btn-lost" href="./search.html?mode=lost">
-<span aria-hidden="true" class="action-hero-icon">🔎</span>
-<span class="eyebrow">דיווח אובדן</span>
-<strong data-i18n="lostAction">איבדתי חיה</strong>
-<small data-i18n="lostActionSub">חיפוש מהיר לפי תמונה, עיר ופרטים.</small>
+<section class="hero product-hero heroSmall petfinder-kbwg-hero">
+<div class="wrap heroInner">
+<div class="heroCopy center-text">
+<div class="badgeRow" aria-label="יתרונות השירות">
+<div class="trust-badge"><span class="icon">🐾</span> פאטקונקט</div>
+<div class="trust-badge"><span class="icon">📷</span> חיפוש לפי תמונה</div>
+<div class="trust-badge"><span class="icon">📍</span> מיקום ודיווח מהיר</div>
+</div>
+<h1 data-i18n="homeHeadline">המסלול הראשי החדש למציאת חיות מחמד</h1>
+<p data-i18n="homeSubheadline">השארנו את העיצוב, התפריט והמבנה של KBWG — אבל עמודי הפתיחה עכשיו מובילים קודם כל לאיתור, חיפוש ודיווח על חיות מחמד.</p>
+<div class="actions heroActions petfinder-hero-actions">
+<a class="btn primary" href="./search.html?mode=lost">איבדתי חיה</a>
+<button class="btn ghost" id="hero-found-now" type="button">מצאתי חיה עכשיו</button>
+<a class="btn ghost" href="./report-found.html">פתיחת דיווח</a>
+</div>
+<div class="petfinder-kbwg-note">תפריט העליון של KBWG נשאר כמו שהוא, וכל שאר דפי האתר נשארו במקומם.</div>
+</div>
+</div>
+</section>
+<section class="panel petfinder-home-panel" aria-label="כניסה מהירה לכלי האיתור">
+<div class="wrap">
+<div class="contentCard stack" style="gap:14px;">
+<div class="sectionHead">
+<h2 class="sectionTitle">מה תרצי לעשות עכשיו?</h2>
+<p class="sectionLead">הדפים הראשיים החדשים מובילים למסלול המהיר של פאטקונקט, ועדיין משאירים גישה מלאה לשאר האתר.</p>
+</div>
+<div class="petfinder-home-card-grid">
+<a class="petfinder-home-card" href="./search.html?mode=lost">
+<div class="icon" aria-hidden="true">🔎</div>
+<strong>חיפוש חיה שאבדה</strong>
+<p class="small">העלאת תמונה, מיקום ותוצאות התאמה מהירות.</p>
+<span class="cta">לפתיחה</span>
 </a>
-<button class="action-hero-card found-now btn-action btn-found" id="hero-found-now" type="button">
-<span aria-hidden="true" class="action-hero-icon">📷</span>
-<span class="eyebrow">מציאה וחיפוש</span>
-<strong data-i18n="foundNowAction">מצאתי חיה עכשיו</strong>
-<small data-i18n="foundNowActionSub">פותח מצלמה מיד וממשיך למסלול חיפוש/דיווח.</small>
-</button>
+<a class="petfinder-home-card" href="./report-found.html">
+<div class="icon" aria-hidden="true">📢</div>
+<strong>דיווח על חיה שנמצאה</strong>
+<p class="small">יצירת דיווח מהיר, שיתוף ופלייר — בלי להתחיל מחדש.</p>
+<span class="cta">לפתיחה</span>
+</a>
+<a class="petfinder-home-card" href="bundles.html">
+<div class="icon" aria-hidden="true">📦</div>
+<strong>מעבר לחבילות של KBWG</strong>
+<p class="small">עמוד החבילות נשאר זמין בדיוק כמו שהיה, מתוך אותו אתר.</p>
+<span class="cta">לבאנדלים</span>
+</a>
+</div>
 </div>
 </div>
 </section>

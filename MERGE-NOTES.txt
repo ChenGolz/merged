@@ -13,3 +13,10 @@ Original KBWG pages preserved as:
 - Restored PetConnect service worker at the site root.
 - Scoped its fetch/caching logic to pet-finder pages/assets only, so KBWG pages remain network-only and unchanged.
 - Added root manifest.webmanifest for the pet-finder experience.
+
+
+2026-04-05 bridge update:
+- kept KBWG header/footer/menu injection exactly as-is
+- added KBWG-based bridge stylesheet for PetConnect pages
+- rebuilt homepage hero using KBWG shell classes
+- kept PetConnect functionality, service worker, and root-level first pages

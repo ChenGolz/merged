@@ -1,29 +1,186 @@
-<!doctype html>
-<html lang="he" dir="rtl">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>פאטקונקט | KBWG</title>
-    <meta name="description" content="פאטקונקט הוא עכשיו דף הבית הראשי של האתר. שאר דפי KBWG עדיין זמינים כרגיל.">
-    <meta http-equiv="refresh" content="0; url=./hanit1/index.html">
-    <link rel="icon" href="./hanit1/favicon.svg" type="image/svg+xml">
-    <script>
-      window.location.replace('./hanit1/index.html');
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>לקנות ללא אכזריות | פאטקונקט</title>
+<meta content="פאטקונקט בתוך מעטפת KBWG — דפי האיתור וההצלה הראשיים של האתר." name="description"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="assets/css/styles.css?v=2026-02-15-v55" rel="stylesheet"/>
+<link href="petconnect-assets/styles.scoped.css?v=2026-04-05-v1" rel="stylesheet"/>
+<link href="assets/img/logo.png" rel="icon" type="image/png"/>
+<link href="manifest.webmanifest?v=2026-04-05-v2" rel="manifest"/>
+<meta content="#0d4f63" name="theme-color"/>
+</head>
+<body class="petconnect-kbwg-page">
+<div id="siteHeaderMount"></div>
+<div id="main">
+<div class="petconnect-scope"><main class="page unified-page minimalist-homepage">
+
+<input accept="image/*" capture="environment" class="camera-direct-input" id="home-camera-input" type="file"/>
+<section class="hero hero-modern hero-home-card stack high-contrast-card section-shell hero-shell clean-slate-hero">
+<div class="hero-card-shell">
+<div class="hero-kicker">פאטקונקט</div>
+<h1 class="hero-main-title" data-i18n="homeHeadline">איחוד חיות מחמד עם בינה מלאכותית</h1>
+<p class="hero-main-subtitle" data-i18n="homeSubheadline">הדרך המהירה ביותר להחזיר חיות מחמד הביתה בעזרת זיהוי תמונה חכם.</p>
+<div class="hero-actions hero-actions-grid big-two-actions">
+<a class="action-hero-card lost btn-action btn-lost" href="./search.html?mode=lost">
+<span aria-hidden="true" class="action-hero-icon">🔎</span>
+<span class="eyebrow">דיווח אובדן</span>
+<strong data-i18n="lostAction">איבדתי חיה</strong>
+<small data-i18n="lostActionSub">חיפוש מהיר לפי תמונה, עיר ופרטים.</small>
+</a>
+<button class="action-hero-card found-now btn-action btn-found" id="hero-found-now" type="button">
+<span aria-hidden="true" class="action-hero-icon">📷</span>
+<span class="eyebrow">מציאה וחיפוש</span>
+<strong data-i18n="foundNowAction">מצאתי חיה עכשיו</strong>
+<small data-i18n="foundNowActionSub">פותח מצלמה מיד וממשיך למסלול חיפוש/דיווח.</small>
+</button>
+</div>
+</div>
+</section>
+<section class="card stack section-shell live-feed-shell home-below-fold" style="margin-top:18px;">
+<div class="space-between compact-home-header-row">
+<div class="section-head">
+<div class="section-kicker">Live feed</div>
+<h2 class="section-title" style="margin:0;">פעילות אחרונה</h2>
+<div class="section-subtitle">מבט קצר על עדכונים מהשטח.</div>
+</div>
+<a class="button-link secondary small" href="./search.html">לכל החיפושים</a>
+</div>
+<div class="live-feed-grid compact-live-feed-grid">
+<div aria-hidden="true" class="live-map-card">
+<div class="live-map-shell compact-live-map-shell">
+<span class="map-dot hot" style="top:26%; right:18%;"></span>
+<span class="map-dot" style="top:44%; right:42%;"></span>
+<span class="map-dot" style="top:61%; right:28%;"></span>
+<span class="map-ring"></span>
+<div class="map-label">מבט מהיר על פעילות</div>
+</div>
+</div>
+<div class="live-feed-list" id="home-live-feed-list">
+<article class="mini-feed-card empty">
+<strong>עדיין אין עדכונים חדשים</strong>
+<div class="small">כאן יופיעו עדכונים אחרונים ופעילות חדשה.</div>
+</article>
+</div>
+</div>
+</section>
+<div class="fab-wrap">
+<div class="fab-sheet hidden" id="home-fab-sheet">
+<button class="emergency" id="fab-open-camera" type="button">מצאתי חיה עכשיו</button>
+<a class="button-link lost" href="./search.html">איבדתי חיה</a>
+<a class="button-link found" href="./report-found.html">דיווח חיה שנמצאה</a>
+</div>
+<button aria-label="פעולות מהירות" class="fab-main" id="home-fab-toggle" type="button">+</button>
+</div>
+<section aria-label="סיפורי הצלחה אחרונים" class="reunion-ticker-shell">
+<div class="ticker-track" id="reunion-ticker-track">
+<span class="ticker-item">בלה חזרה הביתה בתל אביב לפני שעתיים</span>
+<span class="ticker-sep">•</span>
+<span class="ticker-item">מקס אותר בחיפה אתמול</span>
+<span class="ticker-sep">•</span>
+<span class="ticker-item">לונה חזרה למשפחה בירושלים הבוקר</span>
+<span class="ticker-sep">•</span>
+<span class="ticker-item">צ׳ארלי אותר בבאר שבע אחרי דיווח מהשטח</span>
+</div>
+</section>
+
+
+<dialog class="modal-card help-modal" id="home-help-modal">
+<div class="modal-head">
+<strong data-i18n="howToUse">איך משתמשים?</strong>
+<button class="button-link secondary small" id="home-help-close" type="button">סגירה</button>
+</div>
+<div class="stack small">
+<div>1. בחרי אם איבדת חיה או מצאת חיה עכשיו.</div>
+<div>2. צלמי או העלי תמונה.</div>
+<div>3. אם אין התאמה, אפשר לפרסם את התמונה בלחיצה אחת כדיווח.</div>
+</div>
+</dialog>
+</main></div>
+</div>
+<div id="siteFooterMount"></div>
+<script defer src="assets/js/layout-inject.js?v=2026-02-15-v55"></script>
+<script defer src="assets/js/site.js?v=2026-02-15-v55"></script>
+<script defer src="petconnect-assets/global.js?v=20260403v48"></script>
+<script defer src="petconnect-assets/init.js?v=20260403v48"></script>
+<script defer src="petconnect-assets/i18n.js?v=20260403v48"></script>
+<script defer src="petconnect-assets/common.js?v=20260403v48"></script>
+<script defer src="petconnect-assets/app.js?v=20260403v48"></script>
+<script>
+  window.addEventListener('DOMContentLoaded', () => {
+    const STORAGE_KEY = 'petconnect-home-pending-capture-v1';
+    window.bootUiShell?.(document);
+    window.registerServiceWorker?.();
+    const warmSearchModels = () => {
+      const urls = [
+        'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js',
+        'https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.1/dist/mobilenet.min.js',
+        'https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js',
+      ];
+      const prefetch = () => urls.forEach((url) => {
+        fetch(url, { mode: 'cors', credentials: 'omit', cache: 'force-cache' }).catch(() => {});
+      });
+      if ('requestIdleCallback' in window) window.requestIdleCallback(prefetch, { timeout: 1800 });
+      else setTimeout(prefetch, 900);
+    };
+    warmSearchModels();
+    const renderHomeLiveFeed = () => {
+      const feed = document.getElementById('home-live-feed-list');
+      if (!feed) return;
+      const reports = (window.loadFoundReports?.() || []).slice(0, 4);
+      if (!reports.length) {
+        feed.innerHTML = `<article class="mini-feed-card empty"><strong>עדיין אין עדכונים חדשים</strong><div class="small">כאן יופיעו עדכונים אחרונים ופעילות חדשה.</div></article>`;
+        return;
+      }
+      feed.innerHTML = reports.map((report) => `
+        <article class="mini-feed-card">
+          <div class="mini-feed-head">
+            <strong>${window.escapeHtml?.(report.animalType || 'חיה') || 'חיה'}</strong>
+            <span class="chip">${window.escapeHtml?.(report.city || report.locationName || 'האזור שלך') || 'האזור שלך'}</span>
+          </div>
+          <div class="small">${window.escapeHtml?.(report.details || 'עדכון אחרון שנשמר עבורך.') || ''}</div>
+        </article>
+      `).join('');
+    };
+    renderHomeLiveFeed();
+    const renderReunionTicker = () => {
+      const ticker = document.getElementById('reunion-ticker-track');
+      if (!ticker) return;
+      const reports = (window.loadFoundReports?.() || []).slice(0, 6);
+      const items = reports.length ? reports.map((report) => {
+        const place = report.city || report.locationText || 'האזור שלך';
+        const label = report.animalType || 'חיה';
+        return `${label} חזרה הביתה ב${place}`;
+      }) : ['בלה חזרה הביתה בתל אביב לפני שעתיים', 'מקס אותר בחיפה אתמול', 'לונה חזרה למשפחה בירושלים הבוקר'];
+      ticker.innerHTML = items.concat(items).map((item) => `<span class="ticker-item">${window.escapeHtml?.(item) || item}</span><span class="ticker-sep">•</span>`).join('');
+    };
+    renderReunionTicker();
+
+    const cameraInput = document.getElementById('home-camera-input');
+    const openCamera = () => cameraInput?.click();
+    document.getElementById('home-help-toggle')?.addEventListener('click', () => document.getElementById('home-help-modal')?.showModal());
+    document.getElementById('home-about-link')?.addEventListener('click', (event) => { event.preventDefault(); document.getElementById('home-help-modal')?.showModal(); });
+    document.getElementById('home-help-close')?.addEventListener('click', () => document.getElementById('home-help-modal')?.close());
+    document.getElementById('hero-found-now')?.addEventListener('click', openCamera);
+    document.getElementById('fab-open-camera')?.addEventListener('click', openCamera);
+    cameraInput?.addEventListener('change', () => {
+      const file = cameraInput.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try { sessionStorage.setItem(STORAGE_KEY, String(reader.result || '')); } catch (error) {}
+        window.location.href = './search.html?mode=found';
+      };
+      reader.readAsDataURL(file);
+    });
+    const fabToggle = document.getElementById('home-fab-toggle');
+    const fabSheet = document.getElementById('home-fab-sheet');
+    fabToggle?.addEventListener('click', () => fabSheet?.classList.toggle('hidden'));
+  });
     </script>
-    <style>
-      body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0b1020;color:#fff;display:grid;place-items:center;min-height:100vh;padding:24px}
-      .card{max-width:620px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:20px;padding:24px;box-shadow:0 12px 40px rgba(0,0,0,.25)}
-      a{color:#9dd6ff}
-      h1{margin:0 0 10px;font-size:clamp(1.6rem,4vw,2.2rem)}
-      p{margin:0 0 12px;line-height:1.6}
-    </style>
-  </head>
-  <body>
-    <main class="card">
-      <h1>מעבירים אותך לפאטקונקט</h1>
-      <p>זהו עכשיו הדף הראשי של האתר.</p>
-      <p><a href="./hanit1/index.html">לחצי כאן אם ההפניה לא קרתה אוטומטית</a></p>
-      <p><a href="./kbwg-home.html">לדף הבית הישן של KBWG</a></p>
-    </main>
-  </body>
+</body>
 </html>

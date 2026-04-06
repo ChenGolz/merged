@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;800&family=Assistant:wght@400;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;800&display=swap");
 /*
   Single source of truth for site look-and-feel.
   KBWG remains the master visual system for both the core site and the pet-finder pages.
@@ -938,8 +938,18 @@ body.page-bundles .pickCard{
   animation: skeleton-loading 1.35s infinite ease-in-out;
   border-radius: 12px;
 }
-.pet-card-skeleton{ min-height: 280px; }
+.pet-card-skeleton{
+  min-height: 280px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-pulse 1.5s infinite;
+  border-radius: 12px;
+}
 @keyframes skeleton-loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+@keyframes skeleton-pulse {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
@@ -994,4 +1004,51 @@ body.page-bundles .pickCard{
 .shop-category-card .guide-badge,
 .affiliate-bridge-card .guide-badge{
   margin-top: auto;
+}
+
+
+.btn-primary-solid{
+  background: linear-gradient(135deg, #e0bf55, var(--kbwg-gold));
+  color: #1d2430;
+  border: 1px solid rgba(212,175,55,.5);
+  box-shadow: 0 14px 30px rgba(212,175,55,.28);
+  font-weight: 800;
+}
+.btn-primary-solid:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 18px 34px rgba(212,175,55,.34);
+}
+.btn-outline{
+  background: rgba(255,255,255,.94);
+  color: var(--site-text);
+  border: 1px solid rgba(32,58,99,.12);
+  box-shadow: var(--kbwg-shadow-soft);
+}
+.btn-outline:hover{
+  background: rgba(255,255,255,.98);
+}
+.badge-vegan{
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.92);
+  border: 1px solid rgba(97,114,81,.18);
+  color: var(--kbwg-olive);
+  font-size: .76rem;
+  font-weight: 800;
+  box-shadow: 0 8px 18px rgba(15,23,42,.08);
+}
+.affiliate-guide-disclosure{
+  margin-top: 18px;
+  color: #536171;
+  font-size: .96rem;
+}
+.shop-guide-card, .affiliate-bridge-card, .shop-category-card{
+  position: relative;
 }

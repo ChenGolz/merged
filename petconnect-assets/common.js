@@ -15,8 +15,8 @@ const API_CONFIG = Object.freeze({
   useServer: false,
   baseUrl: 'https://your-future-server.com/api',
   cacheMs: 1000 * 60 * 5,
-  mockPetsUrl: './initial-pets.json',
-  mockHomeReportsUrl: './data/mock-home-reports.json',
+  mockPetsUrl: null,
+  mockHomeReportsUrl: null,
 });
 const PET_STATUS = Object.freeze({
   LOST: 'lost',
@@ -25,6 +25,19 @@ const PET_STATUS = Object.freeze({
 });
 const PETS_CACHE_KEY = 'petconnect-pets-cache-v1';
 const HOME_REPORTS_CACHE_KEY = 'petconnect-home-reports-cache-v1';
+function resolveDataUrl(relativePath = '') {
+  try {
+    return new URL(relativePath, window.location.href).href;
+  } catch (error) {
+    return relativePath;
+  }
+}
+
+const RESOLVED_DATA_URLS = Object.freeze({
+  pets: resolveDataUrl('./data/initial-pets.json'),
+  homeReports: resolveDataUrl('./data/mock-home-reports.json'),
+});
+
 const INLINE_HELP_TIPS = Object.freeze([
   {
     eyebrow: 'טיפ למוצאים',
@@ -2022,21 +2035,60 @@ async function loadRemoteData({ cacheKey = '', localLoader = null, mockUrl = '',
           : (Array.isArray(payload?.reports) ? payload.reports : (Array.isArray(payload) ? payload : []));
       }
     : async () => fetchJsonFile(mockUrl, Array.isArray(fallback) ? fallback : []);
-  return fetchWithCache({
-    cacheKey,
-    localLoader,
-    networkLoader,
-    fallback,
+
+  const cached = cacheKey ? readTimedCache(cacheKey) : null;
+  if (cached && cached.length) {
+    Promise.resolve().then(async () => {
+      try {
+        const fresh = await networkLoader();
+        if (Array.isArray(fresh) && fresh.length && cacheKey) writeTimedCache(cacheKey, fresh);
+      } catch (error) {
+        console.warn('רענון נתונים ברקע נכשל:', error);
+      }
+    });
+    return cached;
+  }
+
+  const taggedLocal = Promise.resolve().then(async () => {
+    const localData = typeof localLoader === 'function' ? await localLoader() : [];
+    return { source: 'local', data: Array.isArray(localData) ? localData : [] };
+  }).catch(() => ({ source: 'local', data: [] }));
+
+  const taggedNetwork = Promise.resolve().then(async () => {
+    const networkData = await networkLoader();
+    return { source: 'network', data: Array.isArray(networkData) ? networkData : [] };
+  }).catch((error) => {
+    console.warn('טעינת נתונים נכשלה:', error);
+    return { source: 'network', data: [] };
   });
+
+  const winner = await Promise.race([taggedLocal, taggedNetwork]);
+  const other = winner.source === 'local' ? taggedNetwork : taggedLocal;
+
+  if (Array.isArray(winner.data) && winner.data.length) {
+    if (cacheKey) writeTimedCache(cacheKey, winner.data);
+    Promise.resolve(other).then(({ data }) => {
+      if (Array.isArray(data) && data.length && cacheKey) writeTimedCache(cacheKey, data);
+    }).catch(() => {});
+    return winner.data;
+  }
+
+  const fallbackResult = await other;
+  if (Array.isArray(fallbackResult.data) && fallbackResult.data.length) {
+    if (cacheKey) writeTimedCache(cacheKey, fallbackResult.data);
+    return fallbackResult.data;
+  }
+
+  return Array.isArray(fallback) ? fallback : [];
 }
 
 async function fetchMockPets() {
-  const data = await fetchJsonFile(API_CONFIG.mockPetsUrl, { entries: [] });
+  const data = await fetchJsonFile(RESOLVED_DATA_URLS.pets, { entries: [] });
   return Array.isArray(data?.entries) ? data.entries : (Array.isArray(data) ? data : []);
 }
 
 async function fetchMockHomeReports() {
-  const data = await fetchJsonFile(API_CONFIG.mockHomeReportsUrl, { reports: [] });
+  const data = await fetchJsonFile(RESOLVED_DATA_URLS.homeReports, { reports: [] });
   return Array.isArray(data?.reports) ? data.reports : (Array.isArray(data) ? data : []);
 }
 
@@ -2047,7 +2099,7 @@ async function fetchHomeReports() {
       const localReports = loadFoundReports();
       return Array.isArray(localReports) ? localReports : [];
     },
-    mockUrl: API_CONFIG.mockHomeReportsUrl,
+    mockUrl: RESOLVED_DATA_URLS.homeReports,
     serverPath: '/reports',
     fallback: [],
   });
@@ -2060,7 +2112,7 @@ async function fetchPets() {
       const localEntries = safeJsonParse(localStorage.getItem(STORAGE_KEY), []);
       return Array.isArray(localEntries) ? localEntries : [];
     },
-    mockUrl: API_CONFIG.mockPetsUrl,
+    mockUrl: RESOLVED_DATA_URLS.pets,
     serverPath: '/pets',
     fallback: [],
   });
@@ -2157,6 +2209,14 @@ function buildPetShareMessage(pet = {}, options = {}) {
 
 function buildPetShareHref(pet = {}, options = {}) {
   return `https://wa.me/?text=${encodeURIComponent(buildPetShareMessage(pet, options))}`;
+}
+
+function buildWhatsAppShare(pet = {}, options = {}) {
+  const label = String(pet.name || pet.animalType || pet.label || 'בעל החיים').trim();
+  const place = String(pet.city || pet.locationText || options.fallbackPlace || 'האזור שלכם').trim();
+  const pageUrl = String(options.pageUrl || pet.pageUrl || window.location.href).trim();
+  const text = [`ראיתם את ${label}?`, `${label} אבד ב${place}.`, 'עזרו לנו להחזיר אותו הביתה.', pageUrl].filter(Boolean).join(' ');
+  return { text, href: `https://wa.me/?text=${encodeURIComponent(text)}` };
 }
 
 function estimateAnimalSizeLabel(rect = null, image = null) {
@@ -2460,6 +2520,7 @@ if (typeof window !== 'undefined') {
     renderFoundReportCards,
     buildPetShareMessage,
     buildPetShareHref,
+    buildWhatsAppShare,
     mountLanguageSwitcher,
     bootUiShell,
     getResolvedTheme,

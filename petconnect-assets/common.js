@@ -11,15 +11,32 @@ const LANG_STORAGE_KEY = 'appLanguage';
 const LANG_STORAGE_ALIAS_KEY = 'appLang';
 const LEGACY_LANG_STORAGE_KEY = 'petconnect-ui-lang-v1';
 
-const CONFIG = Object.freeze({
-  DEV_MODE: true,
-  API_URL: 'https://api.petconnect.co.il/v1',
-  CACHE_TIME: 1000 * 60 * 5,
-});
 const API_CONFIG = Object.freeze({
-  useServer: !CONFIG.DEV_MODE,
-  baseUrl: CONFIG.API_URL,
+  useServer: false,
+  baseUrl: 'https://your-future-server.com/api',
+  cacheMs: 1000 * 60 * 5,
 });
+const PET_STATUS = Object.freeze({
+  LOST: 'lost',
+  FOUND: 'found',
+  REUNITED: 'reunited',
+});
+const INLINE_HELP_TIPS = Object.freeze([
+  {
+    eyebrow: 'טיפ למוצאים',
+    title: 'הכלב לחוץ?',
+    text: 'שבו נמוך, הימנעו מריצה לכיוונו והציעו מים וחטיף רגוע אם יש בהישג יד.',
+    href: 'shop.html#calming',
+    cta: 'לציוד שיכול לעזור בשטח'
+  },
+  {
+    eyebrow: 'טיפ בטיחות',
+    title: 'חיפוש ערב קצר ומדויק',
+    text: 'פנס, רצועה קצרה ותג שם זמני יכולים לעזור מאוד בדקות הראשונות של האיתור.',
+    href: 'shop.html#rescue-kit',
+    cta: 'לערכת החיפוש השקטה'
+  }
+]);
 
 window.FOUND_REPORTS_KEY = window.FOUND_REPORTS_KEY || FOUND_REPORTS_KEY;
 window.PENDING_FOUND_REPORT_KEY = window.PENDING_FOUND_REPORT_KEY || PENDING_FOUND_REPORT_KEY;
@@ -1451,72 +1468,6 @@ async function loadRepoLibrary() {
   }
 }
 
-
-async function fetchPets() {
-  if (!API_CONFIG.useServer) {
-    return safeJsonParse(localStorage.getItem(STORAGE_KEY), []);
-  }
-  try {
-    const response = await fetch(`${API_CONFIG.baseUrl}/pets`, { headers: { Accept: 'application/json' } });
-    if (!response.ok) throw new Error(`pets ${response.status}`);
-    const payload = await response.json();
-    return Array.isArray(payload?.entries) ? payload.entries : (Array.isArray(payload) ? payload : []);
-  } catch (error) {
-    console.warn('Server error:', error);
-    return safeJsonParse(localStorage.getItem(STORAGE_KEY), []);
-  }
-}
-
-function getAffiliateQuickTip(match = {}) {
-  const type = String(match.animalType || '').trim();
-  if (type.includes('חת')) {
-    return {
-      text: 'טיפ מהיר: מנשא שקט ומקום מסתור בטוח יכולים להוריד לחץ כבר בדרך הביתה.',
-      href: './shop.html#cats',
-      label: 'למוצרים מומלצים לחתולים',
-    };
-  }
-  if (type.includes('כל')) {
-    return {
-      text: 'טיפ מהיר: קולר עם תג שם ורצועה בטוחה יכולים לחסוך שעות יקרות בחיפוש.',
-      href: './shop.html#tags',
-      label: 'לציוד חיפוש מומלץ',
-    };
-  }
-  return {
-    text: 'טיפ מהיר: ציוד בסיסי, מים וסביבה רגועה יכולים לעשות הבדל גדול בימים הראשונים.',
-    href: './shop.html#rescue-kit',
-    label: 'לערכת ההמלצות',
-  };
-}
-
-function renderInlineAffiliateCard(index = 0) {
-  const cards = [
-    {
-      eyebrow: 'טיפ למוצאים',
-      title: 'הכלב לחוץ?',
-      text: 'מומלץ להשתמש בחטיפי הרגעה עדינים או ברצועה בטוחה בימים הראשונים.',
-      href: './shop.html#calming',
-      cta: 'לצפייה במוצרים המומלצים ←',
-    },
-    {
-      eyebrow: 'טיפ בטיחות',
-      title: 'הגנו על החבר שלכם',
-      text: 'קולר עם תג שם מגדיל משמעותית את הסיכוי לחזרה מהירה הביתה.',
-      href: './shop.html#tags',
-      cta: 'לצפייה בתגים המומלצים ←',
-    },
-  ];
-  const card = cards[index % cards.length];
-  return `
-    <article class="affiliate-inline-card" aria-label="המלצה עדינה לציוד חיוני">
-      <span class="eyebrow">${escapeHtml(card.eyebrow)}</span>
-      <strong>${escapeHtml(card.title)}</strong>
-      <p>${escapeHtml(card.text)}</p>
-      <a href="${escapeHtml(card.href)}" class="btn-text">${escapeHtml(card.cta)}</a>
-    </article>`;
-}
-
 function loadLocalLibrary() {
   const data = safeJsonParse(localStorage.getItem(STORAGE_KEY), []);
   return Array.isArray(data) ? data : [];
@@ -1537,7 +1488,7 @@ function saveImportedLibrary(entries) {
 
 async function getMergedLibrary() {
   const repo = (await loadRepoLibrary()).map((entry) => normalizeEntry({ ...entry, source: 'repo' }));
-  const local = (await fetchPets()).map((entry) => normalizeEntry({ ...entry, source: 'local' }));
+  const local = loadLocalLibrary().map((entry) => normalizeEntry({ ...entry, source: 'local' }));
   const imported = loadImportedLibrary().map((entry) => normalizeEntry({ ...entry, source: 'imported' }));
   return [...repo, ...local, ...imported].filter((entry) => entry.descriptors.length || entry.colorHistograms.length);
 }
@@ -1771,57 +1722,43 @@ function renderMatchCards(matches = [], options = {}) {
   return matches.map((match, index) => {
     const target = match.href && match.href !== '#' ? match.href : '';
     const safeLabel = escapeHtml(String(match.label || 'ללא שם'));
-    const safeNotes = escapeHtml(String(match.notes || 'כל פרט קטן יכול לעזור לזהות ולהחזיר הביתה.'));
-    const safeLocation = escapeHtml(String(match.city || match.locationText || 'האזור שלך'));
-    const safeAnimalType = escapeHtml(String(match.animalType || 'חיה'));
+    const safeNotes = escapeHtml(String(match.notes || ''));
+    const animalType = match.animalType ? `<span class="badge">${escapeHtml(match.animalType)}</span>` : '';
     const breed = match.breed ? `<span class="badge">${escapeHtml(match.breed)}</span>` : '';
     const colors = match.colors ? `<span class="badge">${escapeHtml(match.colors)}</span>` : (match.colorName ? `<span class="badge">${escapeHtml(match.colorName)}</span>` : '');
-    const source = match.source ? `<span class="badge">${sourceLabel(match.source)}</span>` : '';
-    const verifyBadge = match.verificationPrompt ? '<span class="badge">כולל סימן זיהוי</span>' : '';
+    const notes = match.notes ? `<div class="small">${safeNotes}</div>` : '';
     const thumb = match.thumb
-      ? `<img class="pet-result-avatar blur-up is-loading" loading="lazy" decoding="async" onload="this.classList.remove('is-loading')" src="${match.thumb}" alt="${safeLabel}">`
-      : '<div class="latest-pet-placeholder tone-calm"><span>🐾</span></div>';
+      ? `<div class="thumb-wrap blur-shell"><img class="pet-result-avatar blur-up is-loading" loading="lazy" decoding="async" onload="this.classList.remove('is-loading')" src="${match.thumb}" alt="${safeLabel}"></div>`
+      : '<div class="thumb-wrap"><div class="small">אין תמונה</div></div>';
     const score = kind === 'visual' ? Number(match.score || 0) : Number(match.colorScore || match.score || 0);
     const scoreText = kind === 'visual' ? `${Math.round(score * 100)}% התאמה` : `צבע ${Math.round(score * 100)}%`;
-    const statusLabel = kind === 'visual' ? 'אבד לאחרונה' : 'התאמה אפשרית';
+    const reason = kind === 'visual' ? 'התאמה מיידית מהסריקה' : 'תוצאת גיבוי לפי צבעים דומים';
     const breakdown = kind === 'visual'
       ? `<div class="small muted">הטמעה/מבנה ${Math.round(Number(match.embeddingScore || match.rawScore || 0) * 100)}% · צבע פרווה ${Math.round(Number(match.colorScore || 0) * 100)}%${Number(match.breedScore || 0) ? ` · גזע ${Math.round(Number(match.breedScore || 0) * 100)}%` : ''}</div>`
       : '';
-    const profileButton = target
-      ? `<a class="view-btn" href="${escapeHtml(target)}">לפרטים ועזרה</a>`
-      : `<a class="view-btn" href="./search.html">לפרטים ועזרה</a>`;
-    const quickTip = getAffiliateQuickTip(match);
-    const affiliateButton = `<a class="affiliate-link btn-affiliate" href="${escapeHtml(quickTip.href)}">${escapeHtml(quickTip.label)}</a>`;
-    const shareButton = `<a class="share-link" href="${buildWhatsAppHref({ city: match.city, locationText: match.locationText, reportedAt: match.reportedAt, lat: Number(match.lat), lng: Number(match.lng), bestMatch: match })}" target="_blank" rel="noopener">שתפו בווטסאפ</a>`;
+    const profileButton = target ? `<a class="button-link small" href="${escapeHtml(target)}">פתיחת פרופיל</a>` : '<span class="badge">אין קישור פרופיל</span>';
     const verifyButton = match.verificationPrompt ? `<button class="secondary small" type="button" data-verify-index="${index}">בדיקת סימן זיהוי</button>` : '';
-    const promoInsert = ((index + 1) % 3 === 0) ? renderInlineAffiliateCard(index) : '';
     return `
-      <article class="animal-card match-card result-card bundleCard animalCard" data-match-index="${index}">
-        <div class="card-image">${thumb}<span class="status-badge">${statusLabel}</span></div>
-        <div class="card-content">
-          <div class="space-between" style="gap:12px; align-items:flex-start;">
-            <h3 style="margin:0;">שם החיה: ${safeLabel}</h3>
+      <article class="match-card result-card bundleCard animalCard" data-match-index="${index}">
+        ${thumb}
+        <div class="body">
+          <div class="space-between">
+            <strong>${safeLabel}</strong>
             <span class="score-pill ${escapeHtml(String(match.confidence || 'low'))}">${scoreText}</span>
           </div>
-          <p class="location">📍 מיקום: ${safeLocation}</p>
-          <p class="description">${safeNotes}</p>
           <div class="row">
-            <span class="animal-type-chip">${safeAnimalType}</span>
+            ${animalType}
             ${breed}
             ${colors}
-            ${source}
-            ${verifyBadge}
+            ${match.source ? `<span class="badge">${sourceLabel(match.source)}</span>` : ''}
+            ${match.verificationPrompt ? '<span class="badge">כולל סימן זיהוי</span>' : ''}
           </div>
+          <div class="small">${reason}</div>
           ${breakdown}
-          <div class="card-quick-tip">${escapeHtml(quickTip.text)} <a href="${escapeHtml(quickTip.href)}">${escapeHtml(quickTip.label)}</a></div>
-          <div class="card-footer">
-            ${profileButton}
-            ${affiliateButton}
-            ${shareButton}
-            ${verifyButton}
-          </div>
+          ${notes}
+          <div class="card-actions">${profileButton}${verifyButton}</div>
         </div>
-      </article>${promoInsert}`;
+      </article>`;
   }).join('');
 }
 
@@ -1990,6 +1927,39 @@ function saveFoundReports(reports = []) {
   storageSet(localStorage, getFoundReportsKey(), JSON.stringify(Array.isArray(reports) ? reports : []));
 }
 
+async function fetchPets() {
+  if (!API_CONFIG.useServer) return loadFoundReports();
+  try {
+    const response = await fetch(`${API_CONFIG.baseUrl}/pets`);
+    if (!response.ok) throw new Error(`pets ${response.status}`);
+    const payload = await response.json();
+    return Array.isArray(payload) ? payload : [];
+  } catch (error) {
+    console.warn('טעינת נתוני חיות מהשרת נכשלה, ממשיכים עם נתונים מקומיים.', error);
+    return loadFoundReports();
+  }
+}
+
+async function updatePetStatus(petId, newStatus) {
+  const nextStatus = Object.values(PET_STATUS).includes(newStatus) ? newStatus : PET_STATUS.FOUND;
+  if (API_CONFIG.useServer) {
+    try {
+      const response = await fetch(`${API_CONFIG.baseUrl}/pets/${encodeURIComponent(petId)}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: nextStatus }),
+      });
+      if (!response.ok) throw new Error(`pet status ${response.status}`);
+    } catch (error) {
+      console.warn('עדכון הסטטוס בשרת נכשל, מבוצע עדכון מקומי בלבד.', error);
+    }
+  }
+  const reports = loadFoundReports();
+  const updated = reports.map((report) => report.id === petId ? { ...report, status: nextStatus, updatedAt: new Date().toISOString() } : report);
+  saveFoundReports(updated);
+  return updated.find((report) => report.id === petId) || null;
+}
+
 function saveFoundReport(report = {}) {
   const reports = loadFoundReports();
   const saved = {
@@ -2014,7 +1984,9 @@ function saveFoundReport(report = {}) {
     contactPhone: String(report.contactPhone || '').trim(),
     whatsappOptIn: Boolean(report.whatsappOptIn),
     createdAt: new Date().toISOString(),
-    status: 'local',
+    updatedAt: new Date().toISOString(),
+    status: report.reportKind === 'missing' ? PET_STATUS.LOST : PET_STATUS.FOUND,
+    isVerified: Boolean(report.isVerified),
   };
   reports.unshift(saved);
   saveFoundReports(reports.slice(0, 50));
@@ -2051,18 +2023,31 @@ function estimateAnimalSizeLabel(rect = null, image = null) {
 
 function renderFoundReportCards(reports = []) {
   if (!Array.isArray(reports) || !reports.length) return '<div class="empty">עדיין אין דיווחים להצגה.</div>';
-  return reports.map((report) => `
-    <article class="match-card report-card">
+  return reports.map((report) => {
+    const shareHref = buildFoundReportWhatsAppHref(report);
+    const posterData = encodeURIComponent(JSON.stringify({
+      city: report.city,
+      locationText: report.locationText,
+      reportedAt: report.reportedAt,
+      lat: report.lat,
+      lng: report.lng,
+      bestMatch: { label: report.animalType || (report.reportKind === 'missing' ? 'חיה שאבדה' : 'חיה שנמצאה') },
+      mode: report.reportKind === 'missing' ? 'lost' : 'found'
+    }));
+    return `
+    <article class="match-card report-card" data-poster-payload="${posterData}">
       ${report.imageData ? `<div class="thumb-wrap blur-shell"><img class="pet-result-avatar pet-result-img blur-up" src="${report.imageData}" alt="${escapeHtml(report.animalType || (report.reportKind === 'missing' ? 'חיה שאבדה' : 'חיה שנמצאה'))}"></div>` : ''}
       <div class="body stack">
         <div class="space-between"><strong>${escapeHtml(report.animalType || (report.reportKind === 'missing' ? 'חיה שאבדה' : 'חיה שנמצאה'))}</strong><span class="badge">${escapeHtml(formatReportedAt(report.reportedAt) || 'עכשיו')}</span></div>
-        <div class="row"><span class="chip">${report.reportKind === 'missing' ? 'דיווח אובדן' : 'דיווח מציאה'}</span></div>
+        <div class="row"><span class="chip">${report.reportKind === 'missing' ? 'דיווח אובדן' : 'דיווח מציאה'}</span>${report.status === PET_STATUS.REUNITED ? '<span class="badge">חזר/ה הביתה</span>' : ''}${report.isVerified ? '<span class="badge">נבדק ע"י KBWG</span>' : ''}</div>
         <div class="row">${report.breed ? `<span class="badge">${escapeHtml(report.breed)}</span>` : ''}${report.colors ? `<span class="badge">${escapeHtml(report.colors)}</span>` : ''}${report.city ? `<span class="badge">${escapeHtml(report.city)}</span>` : ''}</div>
         <div class="small">${escapeHtml(report.locationText || 'ללא אזור מפורט')}</div>
         ${report.notes ? `<div class="small">${escapeHtml(report.notes)}</div>` : ''}
         ${report.audioData ? `<audio controls preload="none" src="${report.audioData}"></audio>` : ''}
+        <div class="card-actions"><a class="button-link secondary small" href="${shareHref}" target="_blank" rel="noopener">שתפו בווטסאפ</a><button class="secondary small js-open-poster" type="button">פוסטר להדפסה</button></div>
       </div>
-    </article>`).join('');
+    </article>`;
+  }).join('');
 }
 
 function registerServiceWorker() {
@@ -2213,6 +2198,8 @@ function launchConfettiBurst(options = {}) {
   setTimeout(() => layer.remove(), Number(options.duration || 1500));
 }
 
+
+
 if (typeof window !== 'undefined' && !window.__petconnectUiShellBooted) {
   window.__petconnectUiShellBooted = true;
   const runBoot = () => bootUiShell(document);
@@ -2286,6 +2273,12 @@ if (typeof window !== 'undefined') {
     buildWhatsAppHref,
     buildCommunityWatchHref,
     shareResult,
+    API_CONFIG,
+    PET_STATUS,
+    fetchPets,
+    updatePetStatus,
+    loadImpactStats,
+    recordImpactEvent,
     setButtonBusy,
     vibrateIfPossible,
     haversineDistanceKm,
@@ -2317,10 +2310,6 @@ if (typeof window !== 'undefined') {
     renderFoundReportCards,
     mountLanguageSwitcher,
     bootUiShell,
-    fetchSummaryStats,
-    fetchPets,
-    CONFIG,
-    API_CONFIG,
     getResolvedTheme,
     applyTheme,
     toggleTheme,
@@ -2341,6 +2330,19 @@ if (typeof window !== 'undefined') {
     mountThemeToggle(document);
     applyTheme();
   }
+
+  document.addEventListener('click', async (event) => {
+    const button = event.target.closest('.js-open-poster');
+    if (!button) return;
+    const card = button.closest('[data-poster-payload]');
+    if (!card) return;
+    try {
+      const payload = safeJsonParse(decodeURIComponent(card.getAttribute('data-poster-payload') || ''), null);
+      if (payload) await openPrintablePoster(payload);
+    } catch (error) {
+      console.warn('פתיחת הפוסטר נכשלה:', error);
+    }
+  });
 
   const themeMedia = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
   if (themeMedia && themeMedia.addEventListener) {

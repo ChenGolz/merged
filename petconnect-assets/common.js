@@ -23,6 +23,8 @@ const PET_STATUS = Object.freeze({
   FOUND: 'found',
   REUNITED: 'reunited',
 });
+const PETS_CACHE_KEY = 'petconnect-pets-cache-v1';
+const HOME_REPORTS_CACHE_KEY = 'petconnect-home-reports-cache-v1';
 const INLINE_HELP_TIPS = Object.freeze([
   {
     eyebrow: 'טיפ למוצאים',
@@ -127,6 +129,65 @@ function storageRemove(storage, key) {
   } catch {
     return false;
   }
+}
+
+
+function readTimedCache(key, maxAge = API_CONFIG.cacheMs) {
+  const payload = safeJsonParse(storageGet(localStorage, key, 'null'), null);
+  if (!payload || !Array.isArray(payload.data)) return null;
+  const updatedAt = Number(payload.updatedAt || 0);
+  if (maxAge && updatedAt && (Date.now() - updatedAt) > maxAge) return null;
+  return payload.data;
+}
+
+function writeTimedCache(key, data) {
+  if (!Array.isArray(data)) return false;
+  return storageSet(localStorage, key, JSON.stringify({ updatedAt: Date.now(), data }));
+}
+
+async function fetchWithCache(options = {}) {
+  const { cacheKey, localLoader, networkLoader, fallback = [] } = options;
+  const cached = cacheKey ? readTimedCache(cacheKey) : null;
+  if (cached && cached.length) {
+    if (typeof networkLoader === 'function') {
+      Promise.resolve().then(async () => {
+        try {
+          const fresh = await networkLoader();
+          if (Array.isArray(fresh) && fresh.length && cacheKey) writeTimedCache(cacheKey, fresh);
+        } catch (error) {
+          console.warn('רענון נתונים ברקע נכשל:', error);
+        }
+      });
+    }
+    return cached;
+  }
+  const localData = typeof localLoader === 'function' ? await localLoader() : [];
+  if (Array.isArray(localData) && localData.length) {
+    if (cacheKey) writeTimedCache(cacheKey, localData);
+    if (typeof networkLoader === 'function') {
+      Promise.resolve().then(async () => {
+        try {
+          const fresh = await networkLoader();
+          if (Array.isArray(fresh) && fresh.length && cacheKey) writeTimedCache(cacheKey, fresh);
+        } catch (error) {
+          console.warn('רענון נתונים ברקע נכשל:', error);
+        }
+      });
+    }
+    return localData;
+  }
+  if (typeof networkLoader === 'function') {
+    try {
+      const fresh = await networkLoader();
+      if (Array.isArray(fresh) && fresh.length) {
+        if (cacheKey) writeTimedCache(cacheKey, fresh);
+        return fresh;
+      }
+    } catch (error) {
+      console.warn('טעינת נתונים נכשלה:', error);
+    }
+  }
+  return Array.isArray(fallback) ? fallback : [];
 }
 
 function normalizeNumericArray(values) {
@@ -1960,28 +2021,36 @@ async function fetchMockHomeReports() {
 }
 
 async function fetchHomeReports() {
-  const localReports = loadFoundReports();
-  if (Array.isArray(localReports) && localReports.length) return localReports;
-  return fetchMockHomeReports();
+  return fetchWithCache({
+    cacheKey: HOME_REPORTS_CACHE_KEY,
+    localLoader: async () => {
+      const localReports = loadFoundReports();
+      return Array.isArray(localReports) ? localReports : [];
+    },
+    networkLoader: async () => fetchMockHomeReports(),
+    fallback: [],
+  });
 }
 
 async function fetchPets() {
-  if (!API_CONFIG.useServer) {
+  const localLoader = async () => {
     const localEntries = safeJsonParse(localStorage.getItem(STORAGE_KEY), []);
-    if (Array.isArray(localEntries) && localEntries.length) return localEntries;
-    return fetchMockPets();
-  }
-  try {
-    const response = await fetch(`${API_CONFIG.baseUrl}/pets`);
-    if (!response.ok) throw new Error(`pets ${response.status}`);
-    const payload = await response.json();
-    return Array.isArray(payload?.entries) ? payload.entries : (Array.isArray(payload) ? payload : []);
-  } catch (error) {
-    console.warn('טעינת נתוני חיות מהשרת נכשלה, ממשיכים עם נתונים מקומיים.', error);
-    const localEntries = safeJsonParse(localStorage.getItem(STORAGE_KEY), []);
-    if (Array.isArray(localEntries) && localEntries.length) return localEntries;
-    return fetchMockPets();
-  }
+    return Array.isArray(localEntries) ? localEntries : [];
+  };
+  const networkLoader = API_CONFIG.useServer
+    ? async () => {
+        const response = await fetch(`${API_CONFIG.baseUrl}/pets`, { cache: 'no-store' });
+        if (!response.ok) throw new Error(`pets ${response.status}`);
+        const payload = await response.json();
+        return Array.isArray(payload?.entries) ? payload.entries : (Array.isArray(payload) ? payload : []);
+      }
+    : async () => fetchMockPets();
+  return fetchWithCache({
+    cacheKey: PETS_CACHE_KEY,
+    localLoader,
+    networkLoader,
+    fallback: [],
+  });
 }
 
 async function updatePetStatus(petId, newStatus) {
@@ -2060,6 +2129,23 @@ function buildFoundReportWhatsAppHref(report = {}, options = {}) {
   return `https://wa.me/?text=${encodeURIComponent(text)}`;
 }
 
+
+function buildPetShareMessage(pet = {}, options = {}) {
+  const label = String(pet.name || pet.animalType || pet.label || 'בעל החיים').trim();
+  const place = String(pet.city || pet.locationText || options.fallbackPlace || 'האזור שלכם').trim();
+  const notes = String(pet.notes || pet.details || '').trim();
+  const pageUrl = String(options.pageUrl || pet.pageUrl || '').trim();
+  const lines = [`ראיתם את ${label}?`, `${label} דווח/ה ב${place}.`];
+  if (notes) lines.push(notes);
+  lines.push('אפשר לשתף במהירות כדי להגיע לאנשים הנכונים באזור.');
+  if (pageUrl) lines.push(pageUrl);
+  return lines.join(' ');
+}
+
+function buildPetShareHref(pet = {}, options = {}) {
+  return `https://wa.me/?text=${encodeURIComponent(buildPetShareMessage(pet, options))}`;
+}
+
 function estimateAnimalSizeLabel(rect = null, image = null) {
   if (!rect || !image || !image.width || !image.height) return '';
   const ratio = (rect.width * rect.height) / (image.width * image.height);
@@ -2083,7 +2169,7 @@ function renderFoundReportCards(reports = []) {
     }));
     return `
     <article class="match-card report-card" data-poster-payload="${posterData}">
-      ${report.imageData ? `<div class="thumb-wrap blur-shell"><img class="pet-result-avatar pet-result-img blur-up" src="${report.imageData}" alt="${escapeHtml(report.animalType || (report.reportKind === 'missing' ? 'חיה שאבדה' : 'חיה שנמצאה'))}"></div>` : ''}
+      ${report.imageData ? `<div class="thumb-wrap blur-shell"><img class="pet-result-avatar pet-result-img blur-up" loading="lazy" decoding="async" src="${report.imageData}" alt="${escapeHtml(report.animalType || (report.reportKind === 'missing' ? 'חיה שאבדה' : 'חיה שנמצאה'))}"></div>` : ''}
       <div class="body stack">
         <div class="space-between"><strong>${escapeHtml(report.animalType || (report.reportKind === 'missing' ? 'חיה שאבדה' : 'חיה שנמצאה'))}</strong><span class="badge">${escapeHtml(formatReportedAt(report.reportedAt) || 'עכשיו')}</span></div>
         <div class="row"><span class="chip">${report.reportKind === 'missing' ? 'דיווח אובדן' : 'דיווח מציאה'}</span>${report.status === PET_STATUS.REUNITED ? '<span class="badge">חזר/ה הביתה</span>' : ''}${report.isVerified ? '<span class="badge">נבדק ע"י KBWG</span>' : ''}</div>
@@ -2358,6 +2444,8 @@ if (typeof window !== 'undefined') {
     buildFoundReportWhatsAppHref,
     estimateAnimalSizeLabel,
     renderFoundReportCards,
+    buildPetShareMessage,
+    buildPetShareHref,
     mountLanguageSwitcher,
     bootUiShell,
     getResolvedTheme,

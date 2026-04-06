@@ -300,15 +300,15 @@ async function startVoiceRecording() {
     successEl.classList.remove('hidden');
     successEl.innerHTML = `
       <div class="chip">נשמר</div>
-      <h2 class="section-title" style="margin:0;">הדיווח נשמר בהצלחה</h2>
-      <div class="small">אפשר לחזור לדיווח הזה בקלות ולהמשיך ממנו בכל רגע.</div>
+      <h2 class="section-title" style="margin:0;">המודעה עלתה לאוויר!</h2>
+      <div class="small">אנחנו מפיצים אותה עכשיו בקרב הקהילה. אל תאבדו תקווה.</div>
       ${isOffline ? '<div class="offline-draft-chip">נשמר גם ללא חיבור · יסתנכרן כשתחזרי לרשת</div>' : ''}
       <div class="row wrap compact-row">
-        <button id="success-share-btn" class="small" type="button">שיתוף</button>
+        <button id="success-share-btn" class="small" type="button">רוצה לעזור? שתפו</button>
         <button id="success-wa-btn" class="secondary small" type="button">פוסט לוואטסאפ</button>
         <a class="button-link secondary small" id="success-106-btn" href="#">טיוטת 106</a>
       </div>
-      <div class="notice success">מה לעשות עכשיו? בדקי אם יש קולר, פני לוטרינר/ית לסריקת שבב, הציעי מים, והישארי בקרבת האזור שבו החיה נמצאה.</div>
+      <div class="notice success">מה כדאי לעשות עכשיו? בדקו אם יש קולר, פנו לוטרינר/ית לסריקת שבב, הציעו מים והישארו בקרבת המקום שבו היא נראתה.</div>
       ${report.audioData ? '<div class="small">נשמר גם תיאור קולי קצר עם הדיווח.</div>' : ''}`;
     vibrateIfPossible?.([18, 12, 18]);
     const shareText = buildFoundReportShareText(report);
@@ -377,7 +377,7 @@ async function startVoiceRecording() {
       whatsappBtn.disabled = false;
       if (posterBtn) posterBtn.disabled = false;
       await showSuccess(report);
-      setStatus(statusEl, 'הדיווח נשמר בהצלחה.', { tone: 'success' });
+      setStatus(statusEl, 'המודעה עלתה לאוויר!.', { tone: 'success' });
       renderLocalReports();
     } catch (error) {
       console.error(error);

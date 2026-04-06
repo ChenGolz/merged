@@ -109,17 +109,17 @@ async function runSearchPage() {
   }
 
   function getSearchToReportTitle() {
-    return searchMode === 'lost' ? 'לא נמצאה התאמה? פרסמי מודעת אובדן עם אותה תמונה.' : 'לא נמצאה התאמה? פרסמי עכשיו דיווח על חיה שנמצאה עם אותה תמונה — בלי להעלות שוב.';
+    return searchMode === 'lost' ? 'לא מצאתם התאמה? פרסמו מודעת אובדן עם אותה תמונה.' : 'לא מצאתם התאמה? פרסמו עכשיו דיווח עם אותה תמונה — בלי להעלות שוב.';
   }
 
   function hydrateSearchModeUi() {
-    document.getElementById('sticky-report-bar')?.querySelector('strong')?.replaceChildren(document.createTextNode(searchMode === 'lost' ? 'לא נמצאה התאמה לחיה שלך?' : 'לא נמצאה התאמה?'));
+    document.getElementById('sticky-report-bar')?.querySelector('strong')?.replaceChildren(document.createTextNode(searchMode === 'lost' ? 'עדיין לא מצאתם התאמה?' : 'לא נמצאה התאמה?'));
     const stickyText = document.getElementById('sticky-report-bar')?.querySelector('.small');
-    if (stickyText) stickyText.textContent = searchMode === 'lost' ? 'הפכי את אותה תמונה למודעת אובדן — בלי להעלות שוב.' : 'הפכי את התמונה שכבר חיפשת לדיווח על חיה שנמצאה — בלי להעלות שוב.';
+    if (stickyText) stickyText.textContent = searchMode === 'lost' ? 'הפכו את אותה תמונה למודעת אובדן — בלי להעלות שוב.' : 'הפכי את התמונה שכבר חיפשת לדיווח על חיה שנמצאה — בלי להעלות שוב.';
     if (stickyReportBtn) stickyReportBtn.textContent = searchMode === 'lost' ? 'פרסמי מודעת אובדן' : 'פרסמי עכשיו כחיה שנמצאה';
-    if (stickyQuickBtn) stickyQuickBtn.textContent = searchMode === 'lost' ? 'מודעת אובדן מהירה' : 'דיווח מהיר';
+    if (stickyQuickBtn) stickyQuickBtn.textContent = searchMode === 'lost' ? 'פרסום מהיר' : 'דיווח מהיר';
     const reportDirectBtn = document.getElementById('report-direct-btn');
-    if (reportDirectBtn) reportDirectBtn.textContent = searchMode === 'lost' ? 'יצירת מודעת אובדן' : 'דיווח כחיה שנמצאה';
+    if (reportDirectBtn) reportDirectBtn.textContent = searchMode === 'lost' ? 'פרסמו את המודעה עכשיו' : 'דיווח כחיה שנמצאה';
   }
   const privacyNoteEl = document.getElementById('privacy-note');
   const smartHintEl = document.getElementById('smart-hint');
@@ -514,11 +514,11 @@ window.convertToReport = convertToReport;
 
   function buildZeroResultsCtaCard() {
     const reportKind = getReportKindForSearchMode();
-    const title = reportKind === 'missing' ? 'לא מצאת את החיה?' : 'לא נמצאה התאמה?';
+    const title = reportKind === 'missing' ? 'לא מצאתם את החבר שלכם?' : 'לא נמצאה התאמה?';
     const desc = reportKind === 'missing'
       ? 'אל תעצרי כאן. אפשר להפוך את אותה תמונה למודעת אובדן ברגע אחד — בלי להעלות שוב.'
-      : 'אל תתנו להם להישאר לבד. פרסמו דיווח "חיה שנמצאה" עם התמונה הזו ברגע אחד.';
-    const cta = reportKind === 'missing' ? 'הפוך למודעת אובדן עכשיו' : 'הפוך לדיווח עכשיו';
+      : 'אל תתנו להם להישאר לבד. פרסמו מודעה עם התמונה הזו ברגע אחד.';
+    const cta = reportKind === 'missing' ? 'פרסמו מודעת אובדן עכשיו' : 'הפוך לדיווח עכשיו';
     return `
       <div class="card notice success zero-results-cta-card">
         <div class="chip">חיפוש → דיווח</div>
@@ -758,7 +758,7 @@ function renderReportCta(bundle) {
   const state = classifyResultState(bundle);
   const showProminent = !bundle || state.band === 'empty' || state.band === 'low' || state.band === 'fallback';
   const reportKind = getReportKindForSearchMode();
-  const heading = showProminent ? (reportKind === 'missing' ? 'לא מצאת את החיה?' : 'לא נמצאה התאמה?') : (reportKind === 'missing' ? 'רוצה גם לפרסם מודעת אובדן?' : 'רוצה גם לפרסם את החיה שנמצאה?');
+  const heading = showProminent ? (reportKind === 'missing' ? 'לא מצאתם את החבר שלכם?' : 'לא נמצאה התאמה?') : (reportKind === 'missing' ? 'רוצה גם לפרסם מודעת אובדן?' : 'רוצה גם לפרסם את החיה שנמצאה?');
   const text = showProminent
     ? (reportKind === 'missing' ? 'לא נמצאה התאמה חזקה. אפשר להפוך את אותה תמונה למודעת אובדן ברגע אחד — בלי להעלות שוב.' : 'לא נמצאה התאמה חזקה. אפשר להפוך את אותה תמונה לדיווח על חיה שנמצאה ברגע אחד — בלי להעלות שוב.')
     : 'אם תרצי, אפשר להמשיך מהחיפוש הזה ישר לדיווח מהיר עם אותה תמונה ואותו מיקום.';
@@ -774,7 +774,7 @@ function renderReportCta(bundle) {
       </div>
       <div class="row wrap compact-row">
         <button id="cta-report-btn" class="${showProminent ? '' : 'secondary '}small strong-cta" type="button">${reportKind === 'missing' ? 'לא נמצאה התאמה? פרסמי מודעת אובדן עכשיו' : 'לא נמצאה התאמה? פרסמי דיווח עכשיו'}</button>
-        <button id="cta-quick-post-btn" class="secondary small" type="button">${reportKind === 'missing' ? 'מודעת אובדן מהירה' : 'דיווח מהיר מהמיקום הזה'}</button>
+        <button id="cta-quick-post-btn" class="secondary small" type="button">${reportKind === 'missing' ? 'פרסום מהיר' : 'דיווח מהיר מהמיקום הזה'}</button>
       </div>
     </div>`;
   reportCtaContainer.querySelector('#cta-report-btn')?.addEventListener('click', () => goToReport());
@@ -813,7 +813,7 @@ function rerenderResults() {
       currentLibrary = await getMergedLibrary();
       libraryStatsEl.textContent = formatEntryCount(currentLibrary.length);
       if (!currentLibrary.length) {
-        setStatus(statusEl, 'עדיין אין חיות זמינות לחיפוש. אפשר להוסיף רשומות בקלות דרך עמוד ניהול החיות.', { tone: 'warn' });
+        setStatus(statusEl, 'עדיין אין מספיק דיווחים זמינים לחיפוש. אפשר להוסיף בהמשך מודעות חדשות ולחזור לכאן.', { tone: 'warn' });
         resetSearchProgress();
         clearLastMatchGallery();
         return;
@@ -848,9 +848,9 @@ function rerenderResults() {
       } else if (state.band === 'medium') {
         setStatus(statusEl, 'נמצאו כמה מועמדים טובים. עברי על הגלריה והשווי בין הכרטיסים.', { tone: 'success' });
       } else if (state.band === 'low') {
-        setStatus(statusEl, 'נמצאו תוצאות חלשות בלבד. עדיף לנסות חיפוש נוסף עם אזור מדויק יותר או תמונה מזווית אחרת.', { tone: 'warn' });
+        setStatus(statusEl, 'נמצאו התאמות חלשות בלבד. כדאי לנסות עוד תמונה או למקד טוב יותר את אזור בעל החיים.', { tone: 'warn' });
       } else {
-        setStatus(statusEl, 'לא נמצאה התאמה ויזואלית חזקה, לכן מוצגות עכשיו חיות בצבעים דומים.', { tone: 'warn' });
+        setStatus(statusEl, 'לא נמצאה התאמה חזקה, לכן מוצגות עכשיו חיות עם מאפיינים דומים שעשויות לעזור.', { tone: 'warn' });
       }
     } finally {
       setSearchButtonsBusy(false);

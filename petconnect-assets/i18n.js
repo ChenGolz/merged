@@ -301,7 +301,7 @@ const PAGE_TRANSLATIONS = {
         '.links a[href="./search.html"]': 'Animal search',
         '.links a[href="./enroll.html"]': 'Build library',
         '.links a[href="./report-found.html"]': 'Found animal report',
-        'section.card.stack .chip': 'Admin tool',
+        'section.card.stack .chip': 'Community update tool',
         'section.card.stack h1': 'Build an animal library in the browser',
         'section.card.stack p.meta': 'This page is for you, not for visitors. Upload example photos of one animal, compute visual features in the browser, and then export JSON for data/library.json. The system supports animals only, not people recognition.',
         'article.card.stack:nth-of-type(1) h2.section-title': 'Create one entry',

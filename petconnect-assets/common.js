@@ -1695,41 +1695,50 @@ function renderMatchCards(matches = [], options = {}) {
   return matches.map((match, index) => {
     const target = match.href && match.href !== '#' ? match.href : '';
     const safeLabel = escapeHtml(String(match.label || 'ללא שם'));
-    const safeNotes = escapeHtml(String(match.notes || ''));
-    const animalType = match.animalType ? `<span class="badge">${escapeHtml(match.animalType)}</span>` : '';
+    const safeNotes = escapeHtml(String(match.notes || 'כל פרט קטן יכול לעזור לזהות ולהחזיר הביתה.'));
+    const safeLocation = escapeHtml(String(match.city || match.locationText || 'האזור שלך'));
+    const safeAnimalType = escapeHtml(String(match.animalType || 'חיה'));
     const breed = match.breed ? `<span class="badge">${escapeHtml(match.breed)}</span>` : '';
     const colors = match.colors ? `<span class="badge">${escapeHtml(match.colors)}</span>` : (match.colorName ? `<span class="badge">${escapeHtml(match.colorName)}</span>` : '');
-    const notes = match.notes ? `<div class="small">${safeNotes}</div>` : '';
+    const source = match.source ? `<span class="badge">${sourceLabel(match.source)}</span>` : '';
+    const verifyBadge = match.verificationPrompt ? '<span class="badge">כולל סימן זיהוי</span>' : '';
     const thumb = match.thumb
-      ? `<div class="thumb-wrap blur-shell"><img class="pet-result-avatar blur-up is-loading" loading="lazy" decoding="async" onload="this.classList.remove('is-loading')" src="${match.thumb}" alt="${safeLabel}"></div>`
-      : '<div class="thumb-wrap"><div class="small">אין תמונה</div></div>';
+      ? `<img class="pet-result-avatar blur-up is-loading" loading="lazy" decoding="async" onload="this.classList.remove('is-loading')" src="${match.thumb}" alt="${safeLabel}">`
+      : '<div class="latest-pet-placeholder tone-calm"><span>🐾</span></div>';
     const score = kind === 'visual' ? Number(match.score || 0) : Number(match.colorScore || match.score || 0);
     const scoreText = kind === 'visual' ? `${Math.round(score * 100)}% התאמה` : `צבע ${Math.round(score * 100)}%`;
-    const reason = kind === 'visual' ? 'התאמה מיידית מהסריקה' : 'תוצאת גיבוי לפי צבעים דומים';
+    const statusLabel = kind === 'visual' ? 'אבד לאחרונה' : 'התאמה אפשרית';
     const breakdown = kind === 'visual'
       ? `<div class="small muted">הטמעה/מבנה ${Math.round(Number(match.embeddingScore || match.rawScore || 0) * 100)}% · צבע פרווה ${Math.round(Number(match.colorScore || 0) * 100)}%${Number(match.breedScore || 0) ? ` · גזע ${Math.round(Number(match.breedScore || 0) * 100)}%` : ''}</div>`
       : '';
-    const profileButton = target ? `<a class="button-link small" href="${escapeHtml(target)}">פתיחת פרופיל</a>` : '<span class="badge">אין קישור פרופיל</span>';
+    const profileButton = target
+      ? `<a class="view-btn" href="${escapeHtml(target)}">לפרטים ועזרה</a>`
+      : `<a class="view-btn" href="./search.html">לפרטים ועזרה</a>`;
+    const affiliateButton = '<a class="affiliate-link" href="./shop.html">ציוד מומלץ לחיפוש 🔍</a>';
     const verifyButton = match.verificationPrompt ? `<button class="secondary small" type="button" data-verify-index="${index}">בדיקת סימן זיהוי</button>` : '';
     return `
-      <article class="match-card result-card bundleCard animalCard" data-match-index="${index}">
-        ${thumb}
-        <div class="body">
-          <div class="space-between">
-            <strong>${safeLabel}</strong>
+      <article class="animal-card match-card result-card bundleCard animalCard" data-match-index="${index}">
+        <div class="card-image">${thumb}<span class="status-badge">${statusLabel}</span></div>
+        <div class="card-content">
+          <div class="space-between" style="gap:12px; align-items:flex-start;">
+            <h3 style="margin:0;">שם החיה: ${safeLabel}</h3>
             <span class="score-pill ${escapeHtml(String(match.confidence || 'low'))}">${scoreText}</span>
           </div>
+          <p class="location">📍 מיקום: ${safeLocation}</p>
+          <p class="description">${safeNotes}</p>
           <div class="row">
-            ${animalType}
+            <span class="animal-type-chip">${safeAnimalType}</span>
             ${breed}
             ${colors}
-            ${match.source ? `<span class="badge">${sourceLabel(match.source)}</span>` : ''}
-            ${match.verificationPrompt ? '<span class="badge">כולל סימן זיהוי</span>' : ''}
+            ${source}
+            ${verifyBadge}
           </div>
-          <div class="small">${reason}</div>
           ${breakdown}
-          ${notes}
-          <div class="card-actions">${profileButton}${verifyButton}</div>
+          <div class="card-footer">
+            ${profileButton}
+            ${affiliateButton}
+            ${verifyButton}
+          </div>
         </div>
       </article>`;
   }).join('');

@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800&family=Assistant:wght@300;400;600;700;800&display=swap");
 /*
   Single source of truth for site look-and-feel.
   KBWG remains the master visual system for both the core site and the pet-finder pages.
@@ -224,4 +225,292 @@ body{
 }
 @media (max-width: 760px){
   .petconnect-scope .how-it-works-grid{ grid-template-columns: 1fr; }
+}
+
+
+/* =========================
+   Premium KBWG x PetConnect refresh
+   White space, stronger typography, 3-color palette
+   ========================= */
+:root{
+  --he-font: "Heebo", "Assistant", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  --kbwg-bg: #f9f9f9;
+  --kbwg-bg-soft: #ffffff;
+  --kbwg-text: #2c3e50;
+  --kbwg-muted: #637186;
+  --kbwg-gold: #D4AF37;
+  --kbwg-gold-deep: #b9931d;
+  --kbwg-line: rgba(44,62,80,.10);
+  --kbwg-shadow-soft: 0 10px 30px rgba(44,62,80,.06);
+  --kbwg-shadow-card: 0 14px 36px rgba(44,62,80,.08);
+  --kbwg-radius-xl: 28px;
+  --kbwg-radius-lg: 22px;
+}
+html, body{ background: var(--kbwg-bg); }
+body, input, button, textarea, select{ font-family: var(--he-font); }
+body.petconnect-kbwg-page{
+  background:
+    radial-gradient(circle at top left, rgba(212,175,55,.10), transparent 28%),
+    radial-gradient(circle at top right, rgba(42,91,154,.08), transparent 32%),
+    linear-gradient(180deg, #ffffff 0%, #f9f9f9 42%, #f7f8fa 100%);
+  color: var(--kbwg-text);
+}
+body.petconnect-kbwg-page #main{ padding-top: 8px; }
+
+#siteHeader.siteHeader{
+  background: rgba(255,255,255,.94);
+  border-bottom: 1px solid rgba(44,62,80,.08);
+}
+#siteHeader.siteHeader.isScrolled{
+  background: rgba(255,255,255,.98);
+  box-shadow: 0 12px 34px rgba(44,62,80,.08);
+}
+#siteHeader .logoText,
+#siteHeader .nav a,
+#siteHeader .navGroup > summary,
+#siteHeader .navDrop a,
+.bottomBarLabel{
+  font-family: var(--he-font) !important;
+}
+#siteHeader .nav > a:hover,
+#siteHeader .nav > a.active,
+#siteHeader .nav > a[aria-current="page"],
+.bottomBar .bottomBarItem.active,
+.bottomBar .bottomBarItem[aria-current="page"]{
+  background: rgba(212,175,55,.12) !important;
+  border-color: rgba(212,175,55,.18) !important;
+  color: var(--kbwg-text) !important;
+}
+
+.petconnect-scope{
+  --panel: rgba(255,255,255,.96);
+  --panel-2: rgba(255,255,255,.98);
+  --text: var(--kbwg-text);
+  --muted: var(--kbwg-muted);
+  --line: var(--kbwg-line);
+  --accent: var(--kbwg-gold);
+  --accent-2: #2a5b9a;
+  --shadow: var(--kbwg-shadow-soft);
+}
+.petconnect-scope .page{
+  width: min(1140px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 26px 0 46px;
+}
+.petconnect-scope h1,
+.petconnect-scope h2,
+.petconnect-scope h3,
+.petconnect-scope .section-title,
+.petconnect-scope .sectionTitle{
+  color: var(--kbwg-text) !important;
+  letter-spacing: -0.02em;
+}
+.petconnect-scope h1{ font-weight: 800; line-height: 1.04; }
+.petconnect-scope p,
+.petconnect-scope .meta,
+.petconnect-scope .small,
+.petconnect-scope .section-subtitle,
+.petconnect-scope .sectionLead,
+.petconnect-scope .noteTiny{ line-height: 1.7; color: var(--kbwg-muted); }
+.petconnect-scope .section-kicker,
+.petconnect-scope .hero-kicker,
+.petconnect-scope .chip{
+  color: var(--kbwg-gold-deep) !important;
+}
+.petconnect-scope .hero,
+.petconnect-scope .card,
+.petconnect-scope .contentCard,
+.petconnect-scope .petfinder-home-card,
+.petconnect-scope .how-it-works-card,
+.petconnect-scope .animalCard,
+.petconnect-scope .mini-feed-card,
+.petconnect-scope .summary-hero,
+.petconnect-scope dialog,
+.petconnect-scope .verify-modal-card,
+body.page-bundles .bundleCard,
+body.page-bundles .bundleModalPanel,
+body.page-bundles .bundleItem,
+body.page-bundles .pickCard,
+body.page-bundles .bundlePreviewItem{
+  background: linear-gradient(180deg, rgba(255,255,255,.985), rgba(252,252,253,.98)) !important;
+  border: 1px solid var(--kbwg-line) !important;
+  box-shadow: var(--kbwg-shadow-card) !important;
+  border-radius: var(--kbwg-radius-lg) !important;
+}
+.petconnect-scope .card,
+.petconnect-scope .contentCard{ padding: 22px; }
+
+.petconnect-scope .petfinder-master-hero{
+  padding: 34px 26px !important;
+  border-radius: var(--kbwg-radius-xl) !important;
+  background:
+    radial-gradient(circle at top left, rgba(212,175,55,.16), transparent 34%),
+    radial-gradient(circle at bottom right, rgba(42,91,154,.09), transparent 34%),
+    linear-gradient(180deg, rgba(255,255,255,.99), rgba(248,249,251,.97)) !important;
+}
+.petconnect-scope .petfinder-master-hero .heroCopy{ max-width: 72ch; }
+.petconnect-scope .petfinder-master-hero h1{
+  font-size: clamp(2.25rem, 1.7rem + 1.8vw, 3.65rem) !important;
+  margin-bottom: .55rem;
+}
+.petconnect-scope .petfinder-master-hero .heroCopy p{
+  font-size: 1.08rem;
+  max-width: 58ch;
+  margin-inline: auto;
+}
+.petconnect-scope .petfinder-master-hero .decorPhoto{
+  opacity: .17;
+  filter: saturate(.88) contrast(1.02);
+}
+.petconnect-scope .trust-badge,
+.petconnect-scope .badge,
+.petconnect-scope .ticker-item,
+.petconnect-scope .location-pill,
+.petconnect-scope .detection-pill,
+.petconnect-scope .step-pill{
+  border-radius: 999px !important;
+}
+.petconnect-scope .trust-badge{
+  background: rgba(255,255,255,.78);
+  border: 1px solid rgba(44,62,80,.09);
+  box-shadow: 0 6px 16px rgba(44,62,80,.04);
+  color: var(--kbwg-text);
+}
+.petconnect-scope .heroActions,
+.petconnect-scope .actions{ gap: 12px; }
+
+.petconnect-scope .btn.primary,
+.petconnect-scope .button-link.lost,
+.petconnect-scope .button-link.good,
+.petconnect-scope .button-link.found,
+.petconnect-scope #submit-report-btn,
+.petconnect-scope .fab-main,
+body.page-bundles .bundleBtn,
+body.page-bundles .miniBtn:not(.secondary){
+  background: linear-gradient(135deg, var(--kbwg-gold), var(--kbwg-gold-deep)) !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 999px !important;
+  padding: 12px 24px !important;
+  font-weight: 800 !important;
+  box-shadow: 0 12px 26px rgba(212,175,55,.24) !important;
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.petconnect-scope .btn.primary:hover,
+.petconnect-scope .button-link.lost:hover,
+.petconnect-scope .button-link.good:hover,
+.petconnect-scope .button-link.found:hover,
+.petconnect-scope #submit-report-btn:hover,
+.petconnect-scope .fab-main:hover,
+body.page-bundles .bundleBtn:hover,
+body.page-bundles .miniBtn:not(.secondary):hover{
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 16px 34px rgba(212,175,55,.30) !important;
+}
+.petconnect-scope .btn.ghost,
+.petconnect-scope button.secondary,
+.petconnect-scope .button-link.secondary,
+body.page-bundles .miniBtn.secondary,
+body.page-bundles .modalClose{
+  background: rgba(255,255,255,.98) !important;
+  color: var(--kbwg-text) !important;
+  border: 1px solid rgba(44,62,80,.12) !important;
+  border-radius: 999px !important;
+  box-shadow: 0 8px 18px rgba(44,62,80,.05) !important;
+}
+.petconnect-scope .hero-tertiary{
+  background: transparent !important;
+  border-style: dashed !important;
+}
+.petconnect-scope input,
+.petconnect-scope textarea,
+.petconnect-scope select,
+body.page-bundles .pickerTop input[type="search"],
+body.page-bundles .pickerTop select{
+  border-radius: 16px !important;
+  border: 1px solid rgba(44,62,80,.14) !important;
+  background: #fff !important;
+  color: var(--kbwg-text) !important;
+  box-shadow: inset 0 1px 2px rgba(44,62,80,.02);
+}
+.petconnect-scope input:focus,
+.petconnect-scope textarea:focus,
+.petconnect-scope select:focus,
+body.page-bundles .pickerTop input[type="search"]:focus,
+body.page-bundles .pickerTop select:focus{
+  outline: 3px solid rgba(212,175,55,.18) !important;
+  border-color: rgba(212,175,55,.38) !important;
+}
+.petconnect-scope .petfinder-home-card-grid,
+.petconnect-scope .how-it-works-grid{
+  gap: 18px;
+}
+.petconnect-scope .petfinder-home-card,
+.petconnect-scope .how-it-works-card{
+  padding: 20px;
+}
+.petconnect-scope .petfinder-home-card .icon,
+.petconnect-scope .how-it-works-card .stepIndex{
+  background: rgba(212,175,55,.14) !important;
+  color: var(--kbwg-gold-deep) !important;
+}
+.petconnect-scope .petfinder-home-card .cta{ color: var(--kbwg-gold-deep) !important; }
+.petconnect-scope .reunion-ticker-shell{
+  margin-top: 20px;
+  padding: 10px 12px;
+  border-radius: 22px;
+  background: rgba(255,255,255,.96) !important;
+  border: 1px solid rgba(44,62,80,.08) !important;
+  box-shadow: var(--kbwg-shadow-soft) !important;
+}
+.petconnect-scope .ticker-item{
+  color: var(--kbwg-text) !important;
+  background: rgba(212,175,55,.10) !important;
+  border: 1px solid rgba(212,175,55,.18) !important;
+  padding: 8px 14px;
+}
+.petconnect-scope .notice{
+  border-right-color: rgba(212,175,55,.65) !important;
+  background: rgba(212,175,55,.10) !important;
+  color: var(--kbwg-text) !important;
+}
+.petconnect-scope .summary-hero,
+.petconnect-scope .hero-shell,
+.petconnect-scope .petfinder-lead-card{
+  border-radius: var(--kbwg-radius-xl) !important;
+}
+.petconnect-scope .section-head,
+.petconnect-scope .space-between{ gap: 14px; }
+body.page-bundles .bundleHero .heroCopy p{ max-width: 60ch; }
+body.page-bundles .bundleCard .bundleTop,
+body.page-bundles .bundlePreviewItem,
+body.page-bundles .bundleItem,
+body.page-bundles .pickCard{
+  gap: 12px;
+}
+body.page-bundles .bundleCard,
+body.page-bundles .pickCard{ transition: transform .18s ease, box-shadow .18s ease; }
+body.page-bundles .bundleCard:hover,
+body.page-bundles .pickCard:hover,
+.petconnect-scope .animalCard:hover,
+.petconnect-scope .petfinder-home-card:hover{
+  transform: translateY(-2px);
+  box-shadow: 0 18px 38px rgba(44,62,80,.10) !important;
+}
+body.page-bundles .bundlePreviewItem,
+body.page-bundles .bundleItem,
+body.page-bundles .pickCard{
+  background: rgba(249,249,249,.95) !important;
+}
+
+@media (max-width: 760px){
+  .petconnect-scope .page{ width: calc(100% - 24px); padding-top: 18px; }
+  .petconnect-scope .petfinder-master-hero{ padding: 24px 16px !important; }
+  .petconnect-scope .petfinder-master-hero h1{ font-size: clamp(1.95rem, 1.55rem + 1.6vw, 2.65rem) !important; }
+  .petconnect-scope .heroActions,
+  .petconnect-scope .actions{ gap: 10px; }
+  .petconnect-scope .card,
+  .petconnect-scope .contentCard,
+  .petconnect-scope .petfinder-home-card,
+  .petconnect-scope .how-it-works-card{ padding: 16px; }
 }

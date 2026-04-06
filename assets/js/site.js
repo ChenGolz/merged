@@ -48,29 +48,34 @@ function kbwgInjectFaqSchema(){
 }
 
 function kbwgSetActiveNav() {
-    // Auto-highlight active nav (fallback if aria-current isn't set)
+    // Auto-highlight active nav across header and mobile bottom bar
       const pathname = window.location.pathname || '';
-      document.querySelectorAll('.nav a').forEach(a => {
-        const href = a.getAttribute('href');
-        if (!href) return;
-    
-        const isHomeLink = (href === 'index.html' || href.endsWith('/index.html'));
-        const onHome = (
-          pathname === '/' ||
-          pathname === '' ||
-          /\/index\.html?$/.test(pathname) ||
-          /\/$/.test(pathname)
-        );
-    
-        if (
-          (isHomeLink && onHome) ||
-          pathname.endsWith('/' + href) ||
-          pathname.endsWith(href)
-        ) {
-          a.classList.add('active');
-          a.setAttribute('aria-current', 'page');
-        }
-      });
+      const markLinks = (selector) => {
+        document.querySelectorAll(selector).forEach(a => {
+          const href = a.getAttribute('href');
+          if (!href) return;
+          const hrefPath = String(href).split('?')[0].replace(/^\.\//, '');
+
+          const isHomeLink = (hrefPath === 'index.html' || hrefPath.endsWith('/index.html'));
+          const onHome = (
+            pathname === '/' ||
+            pathname === '' ||
+            /\/index\.html?$/.test(pathname) ||
+            /\/$/.test(pathname)
+          );
+
+          if (
+            (isHomeLink && onHome) ||
+            pathname.endsWith('/' + hrefPath) ||
+            pathname.endsWith(hrefPath)
+          ) {
+            a.classList.add('active');
+            a.setAttribute('aria-current', 'page');
+          }
+        });
+      };
+      markLinks('.nav a');
+      markLinks('.bottomBar .bottomBarItem');
   }
 
   // Run now + after dynamic header injection

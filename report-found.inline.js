@@ -3,7 +3,7 @@ async function waitForReportHelpers() {
   const needed = [
     'registerServiceWorker','setStatus','clearValidityOnInput','setRequiredValidity','attachCityAutocomplete','attachBreedAutocomplete',
     'loadPendingFoundReportDraft','savePendingFoundReportDraft','clearPendingFoundReportDraft','saveFoundReport','loadFoundReports',
-    'buildFoundReportShareText','buildFoundReportWhatsAppHref','renderFoundReportCards','reverseGeocodeLatLng','shareResult','blobToImage','cropRectToCanvas','extractColorProfile','estimateAnimalSizeLabel','vibrateIfPossible'
+    'buildFoundReportShareText','buildFoundReportWhatsAppHref','renderFoundReportCards','openPrintablePoster','reverseGeocodeLatLng','shareResult','blobToImage','cropRectToCanvas','extractColorProfile','estimateAnimalSizeLabel','vibrateIfPossible'
   ];
   const start = Date.now();
   while (Date.now() - start < 8000) {
@@ -115,6 +115,7 @@ async function runReportFoundPage() {
         sizeLabel: sizeEl?.value || '',
         city: cityEl?.value || '',
         locationText: locationEl?.value || '',
+        exactAddress: locationEl?.value || '',
         reportedAt: draft?.reportedAt || new Date().toISOString(),
         notes: detailsEl?.value || '',
         phone: phoneEl?.value || '',
@@ -277,12 +278,14 @@ async function startVoiceRecording() {
       sizeLabel: sizeEl.value,
       city: cityEl.value,
       locationText: locationEl.value,
+      exactAddress: locationEl.value,
       reportedAt: (draft?.reportedAt) || new Date().toISOString(),
       lat: currentLat,
       lng: currentLng,
       notes: detailsEl.value.trim(),
       phone: phoneEl?.value?.trim?.() || '',
       whatsappOptIn: Boolean(whatsappOptinEl?.checked),
+      isAdminVerified: false,
       audioData: currentAudioData,
       sourcePage: draft?.sourcePage || './search.html',
     };
@@ -301,14 +304,24 @@ async function startVoiceRecording() {
     successEl.innerHTML = `
       <div class="chip">נשמר</div>
       <h2 class="section-title" style="margin:0;">המודעה עלתה לאוויר!</h2>
-      <div class="small">אנחנו מפיצים אותה עכשיו בקרב הקהילה. אל תאבדו תקווה.</div>
+      <div class="small">עכשיו מתחילים לפעול מסודר: שיתוף, פוסטר ברור וכמה צעדים קטנים שיכולים לעשות הבדל גדול.</div>
       ${isOffline ? '<div class="offline-draft-chip">נשמר גם ללא חיבור · יסתנכרן כשתחזרי לרשת</div>' : ''}
       <div class="row wrap compact-row">
         <button id="success-share-btn" class="small" type="button">רוצה לעזור? שתפו</button>
         <button id="success-wa-btn" class="secondary small" type="button">פוסט לוואטסאפ</button>
+        <button id="success-poster-btn" class="secondary small" type="button">פוסטר להדפסה</button>
         <a class="button-link secondary small" id="success-106-btn" href="#">טיוטת 106</a>
       </div>
-      <div class="notice success">מה כדאי לעשות עכשיו? בדקו אם יש קולר, פנו לוטרינר/ית לסריקת שבב, הציעו מים והישארו בקרבת המקום שבו היא נראתה.</div>
+      <div class="notice success">
+        <strong>5 דברים שכדאי לעשות עכשיו</strong>
+        <ol class="success-checklist">
+          <li>לחזור לנקודה האחרונה שבה נראתה החיה ולהישאר שם כמה דקות בשקט.</li>
+          <li>לשתף את המודעה בקבוצות הווטסאפ והפייסבוק של השכונה.</li>
+          <li>להכין פוסטר קצר וברור להדפסה ולתלייה.</li>
+          <li>לבדוק מקורות מים, גינות ציבוריות ואזורים מוצלים בסביבה.</li>
+          <li>אם מחפשים בערב — הכינו פנס, מים ורצועה קצרה. <a class="text-link" href="shop.html#rescue-kit">צפו בדגמים מומלצים</a>.</li>
+        </ol>
+      </div>
       ${report.audioData ? '<div class="small">נשמר גם תיאור קולי קצר עם הדיווח.</div>' : ''}`;
     vibrateIfPossible?.([18, 12, 18]);
     const shareText = buildFoundReportShareText(report);
@@ -319,6 +332,10 @@ async function startVoiceRecording() {
     });
     successEl.querySelector('#success-wa-btn')?.addEventListener('click', () => {
       window.open(buildFoundReportWhatsAppHref(report), '_blank', 'noopener');
+    });
+    successEl.querySelector('#success-poster-btn')?.addEventListener('click', async () => {
+      await openPosterWindow(report);
+      setStatus(statusEl, 'נפתח פוסטר מוכן להדפסה או שמירה.', { tone: 'success' });
     });
     const m106 = buildMunicipalReportHref({ city: report.city, locationText: report.locationText, reportedAt: report.reportedAt, lat: report.lat, lng: report.lng, bestMatch: { label: report.animalType || 'חיה שנמצאה', animalType: report.animalType, breed: report.breed, colors: report.colors } });
     successEl.querySelector('#success-106-btn')?.setAttribute('href', m106);
@@ -404,7 +421,14 @@ async function startVoiceRecording() {
   posterBtn?.addEventListener('click', async () => {
     const payload = await buildReportPayload().catch(() => null);
     if (!payload) return;
-    await openPosterWindow(payload);
+    await openPrintablePoster({
+      mode: payload.reportKind === 'missing' ? 'lost' : 'found',
+      bestMatch: { label: payload.animalType || 'חיה שנמצאה', animalType: payload.animalType, breed: payload.breed, colors: payload.colors, thumb: payload.imageData },
+      city: payload.city,
+      locationText: payload.locationText,
+      reportedAt: payload.reportedAt,
+      url: window.location.href,
+    });
   });
 
   voiceStartBtn?.addEventListener('click', async () => { try { await startVoiceRecording(); } catch (error) { console.error(error); setStatus(statusEl, 'לא הצלחנו להתחיל הקלטה.', { tone: 'warn' }); } });

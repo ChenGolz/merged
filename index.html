@@ -3,17 +3,19 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1" name="viewport"/>
-<title>KBWG PetConnect | מחזירים אותם הביתה</title>
-<meta content="איבדתם חיה או מצאתם חיה? מעלים תמונה, בודקים התאמות ופועלים מהר כדי להחזיר אותם הביתה. KBWG PetConnect מאחד אבדות ומציאות, חבילות אימוץ והמלצות לציוד חיוני." name="description"/>
-<meta property="og:title" content="עזרו לנו להחזיר אותם הביתה | KBWG PetConnect"/>
-<meta property="og:description" content="מצאתם חיה? איבדתם חבר? מעלים תמונה, בודקים התאמות ופועלים מהר עם הקהילה."/>
-<meta property="og:image" content="assets/img/social-preview.jpg"/>
+<title>KBWG | מחזירים אותם הביתה</title>
+<meta property="og:title" content="KBWG | מחזירים אותם הביתה"/>
+<meta property="og:description" content="איבדתם או מצאתם בעל חיים? דווחו מהר, חפשו לפי תמונה וקבלו כלים מעשיים שיעזרו בדרך הביתה."/>
 <meta property="og:type" content="website"/>
+<meta property="og:image" content="assets/img/social-preview.jpg"/>
+<meta property="og:locale" content="he_IL"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta content="איבדתם או מצאתם בעל חיים? דווחו מהר, חפשו לפי תמונה וקבלו כלים מעשיים שיעזרו בדרך הביתה." name="description"/>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800&amp;family=Assistant:wght@300;400;600;700;800&amp;display=swap" rel="stylesheet"/>
 <link href="petconnect-assets/styles.scoped.css?v=2026-04-05-v1" rel="stylesheet"/>
-<link href="css/main.css?v=2026-04-06-v10" rel="stylesheet"/>
+<link href="css/main.css?v=2026-04-06-v11" rel="stylesheet"/>
 <link href="assets/img/logo.png" rel="icon" type="image/png"/>
 <link href="manifest.webmanifest?v=2026-04-06-v3" rel="manifest"/>
 <meta content="#0d4f63" name="theme-color"/>
@@ -25,79 +27,81 @@
 
 <input accept="image/*" capture="environment" class="camera-direct-input" id="home-camera-input" type="file"/>
 <section class="hero product-hero heroSmall bundleHero petfinder-master-hero">
-<img loading="eager" decoding="async" class="decorPhoto decorCL" src="assets/img/photos/index.png" alt="" aria-hidden="true" />
+<img loading="eager" decoding="async" class="decorPhoto decorCL" src="assets/img/photos/index-card.jpg" alt="" aria-hidden="true" />
 <div class="wrap heroInner">
 <div class="heroCopy center-text">
 <h1>מחזירים אותם הביתה</h1>
-<p>איבדתם חיה או מצאתם חיה? מעלים תמונה, בודקים התאמות ומשתפים עם הקהילה כדי לקרב את רגע המפגש מחדש.</p>
+<p>מחזירים אותם הביתה – דיווח מהיר, איתור חכם וקהילה תומכת.</p>
 <div class="badgeRow center-badges" aria-label="יתרונות השירות">
 <div class="trust-badge"><span class="icon" aria-hidden="true">🐾</span> אבדות ומציאות</div>
 <div class="trust-badge"><span class="icon" aria-hidden="true">📷</span> חיפוש לפי תמונה</div>
 <div class="trust-badge"><span class="icon" aria-hidden="true">📍</span> מיקום ודיווח מהיר</div>
 </div>
 <div class="actions heroActions petfinder-hero-actions">
-<a class="btn primary" href="./search.html?mode=lost">איבדתי חיה — עזרו לי</a>
+<a class="btn primary" href="./search.html?mode=lost">דווח על חיה אבודה</a>
 <button class="btn ghost hero-tertiary" id="hero-found-now" type="button">מצאתי חיה!</button>
 </div>
-<div class="hero-stats" aria-label="נתוני קהילה"><span id="stats-reunited">124</span> חיות התאחדו עם הבעלים · <span id="stats-bundles">38</span> חבילות אימוץ נשלחו</div>
-<div class="petfinder-kbwg-note">דיווח מהיר, התאמות חכמות ושיתוף מיידי עם הקהילה — בלי בלגן ובלי מילים טכניות.</div>
+<div class="hero-stats" aria-label="השפעת הקהילה">
+  <span><strong id="stats-reunited">0</strong> חיות כבר חזרו הביתה</span>
+  <span class="sep" aria-hidden="true">•</span>
+  <span><strong id="stats-reports">0</strong> דיווחים פעילים בקהילה</span>
+</div>
+<div class="petfinder-kbwg-note">כאן תמצאו קודם כל עזרה, שיתוף וכלים מעשיים. ההמלצות לציוד מופיעות רק כשצריך אותן באמת.</div>
 </div>
 </div>
 </section>
-<section class="affiliate-quick-links" aria-label="מוצרים חיוניים לחיפוש בטוח">
-  <div class="wrap container">
-    <div class="sectionHead center-text compact">
-      <h3>מוצרים חיוניים לחיפוש בטוח</h3>
-      <p>המלצות שיכולות לעזור כבר מהיום הראשון — בלי להעמיס ובלי להסיח את הדעת מהמטרה.</p>
-    </div>
-    <div class="grid-links">
-      <a href="shop.html#tags" class="recommend-card">
-        <i class="icon" aria-hidden="true">🐕</i>
-        <strong>קולרים ותגי שם</strong>
-        <p>פריטים פשוטים שמגדילים את הסיכוי לחזרה מהירה הביתה.</p>
-      </a>
-      <a href="shop.html#calming" class="recommend-card">
-        <i class="icon" aria-hidden="true">🌿</i>
-        <strong>מוצרי הרגעה עדינים</strong>
-        <p>מומלץ לימים הראשונים, במיוחד כשהחיה לחוצה או מבולבלת.</p>
-      </a>
-      <a href="shop.html#rescue-kit" class="recommend-card">
-        <i class="icon" aria-hidden="true">🎒</i>
-        <strong>ערכת הצלה מוכנה</strong>
-        <p>כל מה שצריך לרגעים הראשונים — בקישור אחד מסודר.</p>
-      </a>
-    </div>
-  </div>
-</section>
-<section class="impact-bar" aria-label="אימפקט קהילתי">
+<section class="impact-bar" aria-label="הוכחה חברתית">
   <div class="wrap">
-    <p><strong><span id="impact-reunited-inline">124</span> חיות</strong> כבר חזרו הביתה בזכות שיתופים, דיווחים ואנשים טובים בדרך. 🐾</p>
+    <p><strong id="impact-summary">הקהילה כאן כדי לעזור.</strong> כל דיווח שנפתח כאן מקבל מקום לשיתוף, פוסטר מוכן להדפסה וטיפים מעשיים לצעדים הבאים.</p>
   </div>
 </section>
+<section class="card stack section-shell help-first-shell" style="margin-top:18px;">
+  <div class="section-head">
+    <div class="section-kicker">עזרה ראשונה לחיפוש</div>
+    <h2 class="section-title" style="margin:0;">מה כדאי לעשות כבר עכשיו?</h2>
+    <div class="section-subtitle">לפני הכול — נשמו עמוק, פעלו מהר ושמרו על סדר. הפעולות הקטנות האלו עושות הבדל גדול.</div>
+  </div>
+  <div class="help-tip-grid">
+    <article class="help-tip-card">
+      <strong>בדקו מקורות מים ואזורים שקטים</strong>
+      <p>כלבים וחתולים אבודים נמשכים לעיתים למקומות עם צל, מים או שקט יחסי. התחילו שם.</p>
+    </article>
+    <article class="help-tip-card">
+      <strong>שתפו פוסטר ברור בקבוצות השכונה</strong>
+      <p>תמונה אחת טובה, אזור אחרון שנראה בו וטלפון זמין יעלו משמעותית את הסיכוי לעזרה מהירה.</p>
+    </article>
+    <article class="help-tip-card help-tip-card-soft">
+      <strong>מתכננים חיפוש ערב?</strong>
+      <p>הכינו מראש פנס, מים, רצועה וחטיפים. דף החנות נשאר משני — אבל ריכזנו שם כמה המלצות שיכולות לעזור אם צריך.</p>
+      <a class="text-link" href="shop.html#rescue-kit">לערכת החיפוש השקטה</a>
+    </article>
+  </div>
+</section>
+<div id="map-container" class="map-placeholder hidden" aria-hidden="true"></div>
 <section class="panel petfinder-home-panel" aria-label="כניסה מהירה לכלי האיתור">
 <div class="wrap">
 <div class="contentCard stack" style="gap:14px;">
 <div class="sectionHead">
-<h2 class="sectionTitle">הדרך המהירה לפעול עכשיו</h2>
-<p class="sectionLead">דיווח מהיר, איתור חכם או מעבר לחנות והחבילות — הכול במקום אחד, בלי בלגן.</p>
+<h2 class="sectionTitle">מה תרצו לעשות עכשיו?</h2>
+<p class="sectionLead">דיווח, חיפוש או שיתוף — כל מה שצריך ברגע חשוב אחד.</p>
 </div>
 <div class="petfinder-home-card-grid">
 <a class="petfinder-home-card" href="./search.html?mode=lost">
 <div class="icon" aria-hidden="true">🔎</div>
 <strong>אבדות ומציאות</strong>
-<p class="small">מעלות תמונה ומקבלות התאמות שעשויות לעזור לחזור הביתה מהר יותר.</p>
+<p class="small">העלו תמונה וקבלו התאמות שעשויות לעזור לזהות את בעל החיים במהירות.</p>
 <span class="cta">להתחלה</span>
 </a>
 <a class="petfinder-home-card" href="./report-found.html">
 <div class="icon" aria-hidden="true">📢</div>
 <strong>דיווח מהיר</strong>
-<p class="small">פרסמו מודעה במהירות, שתפו בקהילה והגיעו לאנשים הנכונים בזמן.</p>
+<p class="small">פרסמו מודעה במהירות כדי שאנשים בסביבה יוכלו לעזור בזמן אמת.</p>
 <span class="cta">להתחלה</span>
 </a>
 <a class="petfinder-home-card" href="bundles.html">
 <div class="icon" aria-hidden="true">📦</div>
-<strong>חבילות אימוץ וטיפול</strong>
-<p class="small">כי אימוץ הוא רק ההתחלה. ריכזנו עבורכם את כל מה שצריך כדי להתחיל את החיים המשותפים ברגל ימין.</p>
+<strong>חנות המלצות</strong>
+<p class="small">מקום שקט להמלצות שימושיות לרגעים שבהם באמת צריך עוד משהו.</p>
 <span class="cta">לצפייה</span>
 </a>
 </div>
@@ -107,46 +111,15 @@
 <section class="card stack section-shell home-below-fold latest-pets-shell" style="margin-top:18px;">
 <div class="space-between compact-home-header-row">
 <div class="section-head">
-<div class="section-kicker">דיווחים אחרונים</div>
+<div class="section-kicker">דיווחים מהקהילה</div>
 <h2 class="section-title" style="margin:0;">דיווחים אחרונים מהשטח</h2>
-<div class="section-subtitle">כל שיתוף יכול להיות המפגש הבא שלהם עם הבית.</div>
+<div class="section-subtitle">ראיתם אחד מהם? לחצו לפרטים, שתפו במהירות ועזרו להגיע לאנשים הנכונים.</div>
 </div>
 <a class="button-link secondary small" href="./search.html">לכל הדיווחים</a>
 </div>
 <div class="latest-pets-grid" id="home-latest-pets-grid" aria-live="polite"></div>
-<div class="affiliate-soft-banner">
-  <div>
-    <strong>מכינים את הבית לחבר החדש?</strong>
-    <div class="small">בדקו את חבילות ה־Cruelty Free שלנו והמלצות לציוד שיקל על הימים הראשונים.</div>
-  </div>
-  <a class="button-link secondary" href="./bundles.html">לחבילות האימוץ</a>
-</div>
 </section>
 
-<section class="card stack section-shell affiliate-bridge-shell" style="margin-top:18px;">
-  <div class="section-head">
-    <div class="section-kicker">מומלץ למשפחה</div>
-    <h2 class="section-title" style="margin:0;">מוצרים שנבחרו באהבה, בלי להרגיש כמו פרסומת</h2>
-    <div class="section-subtitle">כאוהבי חיות, בחרנו עבורכם רק מוצרים וחבילות שמרגישים נכון — וכל רכישה דרך ההמלצות עוזרת לשמור על מערכת האיתור חינם.</div>
-  </div>
-  <div class="affiliate-bridge-grid">
-    <a class="affiliate-bridge-card" href="./bundles.html">
-      <span class="eyebrow">Welcome Home</span>
-      <strong>חבילות אימוץ</strong>
-      <p>כל מה שצריך כדי להתחיל ברגל ימין עם חבר חדש במשפחה.</p>
-    </a>
-    <a class="affiliate-bridge-card" href="./shop.html">
-      <span class="eyebrow">Cruelty-Free</span>
-      <strong>מוצרים טבעוניים</strong>
-      <p>מזון, טיפוח ואביזרים שנבחרו לפי ערכים של חמלה ואיכות.</p>
-    </a>
-    <a class="affiliate-bridge-card" href="./guides.html">
-      <span class="eyebrow">מדריכים</span>
-      <strong>הבלוג שלנו</strong>
-      <p>המלצות, טיפים ומדריכים שיתנו לכם ביטחון כבר מהיום הראשון.</p>
-    </a>
-  </div>
-</section>
 <div class="fab-wrap">
 <div class="fab-sheet hidden" id="home-fab-sheet">
 <button class="emergency" id="fab-open-camera" type="button">מצאתי חיה עכשיו</button>
@@ -192,6 +165,10 @@
 </div>
 </section>
 
+<div class="mobile-quick-bar" aria-label="פעולות מהירות במובייל">
+  <a class="mobile-quick-btn primary" href="./search.html?mode=lost">דווח על חיה אבודה</a>
+  <a class="mobile-quick-btn secondary" href="./report-found.html">מצאתי חיה</a>
+</div>
 
 <dialog class="modal-card help-modal" id="home-help-modal">
 <div class="modal-head">
@@ -207,13 +184,13 @@
 </main></div>
 </div>
 <div id="siteFooterMount"></div>
-<script defer src="assets/js/layout-inject.js?v=2026-04-06-v3"></script>
-<script defer src="assets/js/site.js?v=2026-04-06-v3"></script>
+<script defer src="assets/js/layout-inject.js?v=2026-04-06-v4"></script>
+<script defer src="assets/js/site.js?v=2026-04-06-v4"></script>
 <script defer src="petconnect-assets/global.js?v=20260403v48"></script>
 <script defer src="petconnect-assets/init.js?v=20260403v48"></script>
 <script defer src="petconnect-assets/i18n.js?v=20260403v48"></script>
-<script defer src="petconnect-assets/common.js?v=20260406v49"></script>
-<script defer src="petconnect-assets/app.js?v=20260406v49"></script>
+<script defer src="petconnect-assets/common.js?v=20260406v50"></script>
+<script defer src="petconnect-assets/app.js?v=20260403v48"></script>
 <script>
   window.addEventListener('DOMContentLoaded', () => {
     const STORAGE_KEY = 'petconnect-home-pending-capture-v1';
@@ -232,14 +209,6 @@
       else setTimeout(prefetch, 900);
     };
     warmSearchModels();
-    const fallbackLatestPets = [
-      { animalType: 'כלבה', city: 'תל אביב', notes: 'ליידי נראתה ליד הפארק, עם קולר כחול ותגובה עדינה לאנשים.', emoji: '🐶', tone: 'warm' },
-      { animalType: 'חתול', city: 'חולון', notes: 'מיצי אותר ליד המרפאה השכונתית ומחכה לעדכון מהבעלים.', emoji: '🐱', tone: 'calm' },
-      { animalType: 'כלב', city: 'חיפה', notes: 'מקס זוהה בשכונה הצפונית אחרי מספר דיווחים מהקהילה.', emoji: '🐕', tone: 'olive' },
-      { animalType: 'חתולה', city: 'ירושלים', notes: 'לונה נצפתה בבוקר עם סימן לבן על החזה.', emoji: '🐈', tone: 'soft' },
-      { animalType: 'כלב', city: 'באר שבע', notes: 'צ׳ארלי אותר קרוב לפארק, רגוע מאוד וניגש למי שקורא לו.', emoji: '🐾', tone: 'warm' },
-      { animalType: 'חתול', city: 'ראשון לציון', notes: 'זיגי נצפה ליד בית הספר עם קולר ירוק.', emoji: '🐱', tone: 'calm' }
-    ];
     const formatDate = (value) => {
       try {
         if (!value) return 'דיווח חדש';
@@ -248,66 +217,71 @@
         return 'דיווח חדש';
       }
     };
-    const renderHomeLatestPets = () => {
+    const helpTips = [
+      { title: 'טיפ מהיר', text: 'בעלי חיים שאבדו נוטים להישאר לא רחוק מהנקודה האחרונה שבה נראו — חפשו במעגלים קצרים לפני שמתרחקים.' },
+      { title: 'לשיתוף נכון', text: 'כדאי לשתף תמונה אחת ברורה, שם, אזור וטלפון זמין. פחות טקסט, יותר סיכוי שמישהו יגיב מהר.' }
+    ];
+    const renderHomeLatestPets = async () => {
       const grid = document.getElementById('home-latest-pets-grid');
       if (!grid) return;
-      const reports = (window.loadFoundReports?.() || []).slice(0, 6);
-      const list = reports.length ? reports : fallbackLatestPets;
-      grid.innerHTML = list.map((report, index) => {
+      grid.innerHTML = `<article class="latest-pet-card pet-card-skeleton skeleton"></article><article class="latest-pet-card pet-card-skeleton skeleton"></article><article class="latest-pet-card pet-card-skeleton skeleton"></article>`;
+      const list = await (window.PetConnectCommon?.fetchHomeReports?.() || Promise.resolve([]));
+      const reports = Array.isArray(list) ? list.slice(0, 6) : [];
+      const helpTips = [
+        { title: 'טיפ מהיר', text: 'בעלי חיים שאבדו נוטים להישאר לא רחוק מהנקודה האחרונה שבה נראו — חפשו במעגלים קצרים לפני שמתרחקים.' },
+        { title: 'לשיתוף נכון', text: 'כדאי לשתף תמונה אחת ברורה, אזור אחרון וטלפון זמין. פחות טקסט, יותר סיכוי שמישהו יגיב מהר.' }
+      ];
+      const cards = [];
+      reports.forEach((report, index) => {
         const esc = window.escapeHtml || ((value) => String(value ?? ''));
-        const name = esc(report.name || report.petName || report.animalName || report.animalType || 'חבר על ארבע');
-        const animalType = esc(report.animalType || 'חיה');
+        const title = esc(report.name || report.animalType || 'חיה');
         const place = esc(report.city || report.locationText || 'האזור שלך');
-        const note = esc(report.notes || report.details || 'כל פרט קטן יכול לעזור לזהות ולהחזיר הביתה.');
+        const note = esc(report.notes || report.details || 'עדכון שנשמר בקהילה ומחכה לעיניים הנכונות.');
         const tone = esc(report.tone || ['warm','calm','olive','soft'][index % 4]);
         const emoji = esc(report.emoji || '🐾');
-        const statusLabel = esc(report.reportKind === 'missing' ? 'אבד לאחרונה' : report.reportKind === 'found' ? 'נמצא לאחרונה' : 'דיווח חדש');
-        const image = report.imageData
-          ? `<img src="${report.imageData}" alt="${name}" loading="lazy" decoding="async">`
-          : `<div class="latest-pet-placeholder tone-${tone}"><span>${emoji}</span></div>`;
-        return `
-          <article class="animal-card latest-animal-card">
-            <div class="card-image">${image}<span class="status-badge">${statusLabel}</span></div>
-            <div class="card-content">
-              <h3>שם החיה: ${name}</h3>
-              <p class="location">📍 מיקום: ${place}</p>
-              <p class="description">${note}</p>
-              <div class="card-meta-row">
-                <span class="animal-type-chip">${animalType}</span>
-                <span class="report-date">${formatDate(report.reportedAt)}</span>
-              </div>
-              <div class="card-quick-tip">טיפ מהיר: תג שם או קולר ברור יכולים לחסוך שעות יקרות בחיפוש. <a href="./shop.html#tags">להמלצות שלנו</a></div>
-              <div class="card-footer">
-                <a href="./search.html" class="view-btn">לפרטים ועזרה</a>
-                <a href="./shop.html#rescue-kit" class="affiliate-link btn-affiliate">ציוד מומלץ לחיפוש 🔍</a>
-                <a href="https://wa.me/?text=${encodeURIComponent(`עזרו לנו לזהות את ${name} באזור ${place}. פרטים: ${note}`)}" class="share-link" target="_blank" rel="noopener">שתפו בווטסאפ</a>
-              </div>
+        const image = report.imageData ? `<img src="${report.imageData}" alt="${title}" loading="lazy" decoding="async">` : `<div class="latest-pet-placeholder tone-${tone}"><span>${emoji}</span></div>`;
+        cards.push(`
+          <article class="latest-pet-card">
+            <div class="latest-pet-media">${image}</div>
+            <div class="latest-pet-body">
+              <div class="latest-pet-top"><strong>${title}</strong><span class="chip">${place}</span></div>
+              <p>${note}</p>
+              <div class="latest-pet-meta"><span>${formatDate(report.reportedAt)}</span><a href="https://wa.me/?text=${encodeURIComponent(`עזרו לנו לזהות את ${title} באזור ${place}. ${note}`)}" class="text-link" target="_blank" rel="noopener">שתפו בווטסאפ</a></div>
             </div>
-          </article>`;
-      }).join('');
+          </article>`);
+        if ((index + 1) % 3 === 0 && index !== reports.length - 1) {
+          const tip = helpTips[Math.floor(index / 3) % helpTips.length];
+          cards.push(`
+            <article class="latest-pet-card latest-pet-card--tip">
+              <div class="latest-pet-body">
+                <div class="section-kicker">${tip.title}</div>
+                <strong>עזרה שעושה הבדל</strong>
+                <p>${tip.text}</p>
+                <div class="latest-pet-meta"><span>שמרו לשעת הצורך</span><a href="./report-found.html" class="text-link">לפתיחת דיווח מהיר</a></div>
+              </div>
+            </article>`);
+        }
+      });
+      grid.innerHTML = cards.join('') || '<div class="empty">עדיין אין דיווחים להצגה.</div>';
     };
-    const renderHeroStats = async () => {
-      const reunitedNode = document.getElementById('stats-reunited');
-      const bundlesNode = document.getElementById('stats-bundles');
-      const impactNode = document.getElementById('impact-reunited-inline');
-      let summary = null;
-      try {
-        summary = await window.PetConnectCommon?.fetchSummaryStats?.();
-      } catch (error) {
-        summary = null;
+    const renderImpactSummary = async () => {
+      const stats = window.loadImpactStats?.() || {};
+      const reportsList = await (window.PetConnectCommon?.fetchHomeReports?.() || Promise.resolve([]));
+      const reunited = Number(stats.strongMatches || 0);
+      const reports = Number((Array.isArray(reportsList) ? reportsList.length : 0) || 0);
+      const reunitedEl = document.getElementById('stats-reunited');
+      const reportsEl = document.getElementById('stats-reports');
+      const summaryEl = document.getElementById('impact-summary');
+      if (reunitedEl) reunitedEl.textContent = String(reunited);
+      if (reportsEl) reportsEl.textContent = String(reports);
+      if (summaryEl) {
+        summaryEl.textContent = reunited > 0
+          ? `יחד כבר עזרנו ל-${reunited} בעלי חיים להתקרב חזרה הביתה.`
+          : 'כל דיווח מקבל כאן כלים מעשיים, פוסטר לשיתוף וקהילה שרוצה לעזור.';
       }
-      const impactRaw = (() => {
-        try { return JSON.parse(localStorage.getItem('petconnect-ghpages-impact-stats-v1') || '{}'); } catch (error) { return {}; }
-      })();
-      const foundReports = window.loadFoundReports?.() || [];
-      const reunited = Number(summary?.reunitedLast24h || impactRaw.strongMatches || foundReports.length || 124);
-      const bundles = Number(impactRaw.librariesExported || Math.max(12, Math.ceil(reunited / 3)));
-      if (reunitedNode) reunitedNode.textContent = reunited;
-      if (bundlesNode) bundlesNode.textContent = bundles;
-      if (impactNode) impactNode.textContent = reunited;
     };
     renderHomeLatestPets();
-    renderHeroStats();
+    renderImpactSummary();
     const renderReunionTicker = () => {
       const ticker = document.getElementById('reunion-ticker-track');
       if (!ticker) return;

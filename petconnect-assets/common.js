@@ -15,6 +15,8 @@ const API_CONFIG = Object.freeze({
   useServer: false,
   baseUrl: 'https://your-future-server.com/api',
   cacheMs: 1000 * 60 * 5,
+  mockPetsUrl: './data/mock-pets.json',
+  mockHomeReportsUrl: './data/mock-home-reports.json',
 });
 const PET_STATUS = Object.freeze({
   LOST: 'lost',
@@ -72,6 +74,13 @@ function hashString(text) {
     hash |= 0;
   }
   return Math.abs(hash).toString(36);
+}
+
+function generateUuid() {
+  try {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+  } catch (error) {}
+  return `pet-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
 function slugify(text) {
@@ -1828,7 +1837,7 @@ function buildPendingFoundReportDraft(payload = {}) {
   const sizeLabel = String(payload.sizeLabel || '').trim();
   const colorName = String(payload.colorName || payload.colors || '').trim();
   return {
-    id: payload.id || `draft-${Date.now()}`,
+    id: payload.id || generateUuid(),
     reportKind: String(payload.reportKind || payload.kind || 'found').trim() || 'found',
     imageData,
     animalType,
@@ -1844,11 +1853,13 @@ function buildPendingFoundReportDraft(payload = {}) {
     notes: String(payload.notes || '').trim(),
     searchRadiusKm: Number(payload.searchRadiusKm || 0) || 0,
     sourcePage: String(payload.sourcePage || window.location.href).trim(),
+    exactAddress: String(payload.exactAddress || payload.locationText || '').trim(),
     quickPost: Boolean(payload.quickPost),
     querySummary: String(payload.querySummary || '').trim(),
     audioData: String(payload.audioData || '').trim(),
     contactPhone: String(payload.contactPhone || '').trim(),
     whatsappOptIn: Boolean(payload.whatsappOptIn),
+    isAdminVerified: Boolean(payload.isAdminVerified),
   };
 }
 
@@ -1927,16 +1938,49 @@ function saveFoundReports(reports = []) {
   storageSet(localStorage, getFoundReportsKey(), JSON.stringify(Array.isArray(reports) ? reports : []));
 }
 
+async function fetchJsonFile(url, fallback = []) {
+  try {
+    const response = await fetch(url, { cache: 'no-store', headers: { Accept: 'application/json' } });
+    if (!response.ok) throw new Error(`${url} ${response.status}`);
+    return await response.json();
+  } catch (error) {
+    console.warn(error);
+    return fallback;
+  }
+}
+
+async function fetchMockPets() {
+  const data = await fetchJsonFile(API_CONFIG.mockPetsUrl, { entries: [] });
+  return Array.isArray(data?.entries) ? data.entries : (Array.isArray(data) ? data : []);
+}
+
+async function fetchMockHomeReports() {
+  const data = await fetchJsonFile(API_CONFIG.mockHomeReportsUrl, { reports: [] });
+  return Array.isArray(data?.reports) ? data.reports : (Array.isArray(data) ? data : []);
+}
+
+async function fetchHomeReports() {
+  const localReports = loadFoundReports();
+  if (Array.isArray(localReports) && localReports.length) return localReports;
+  return fetchMockHomeReports();
+}
+
 async function fetchPets() {
-  if (!API_CONFIG.useServer) return loadFoundReports();
+  if (!API_CONFIG.useServer) {
+    const localEntries = safeJsonParse(localStorage.getItem(STORAGE_KEY), []);
+    if (Array.isArray(localEntries) && localEntries.length) return localEntries;
+    return fetchMockPets();
+  }
   try {
     const response = await fetch(`${API_CONFIG.baseUrl}/pets`);
     if (!response.ok) throw new Error(`pets ${response.status}`);
     const payload = await response.json();
-    return Array.isArray(payload) ? payload : [];
+    return Array.isArray(payload?.entries) ? payload.entries : (Array.isArray(payload) ? payload : []);
   } catch (error) {
     console.warn('טעינת נתוני חיות מהשרת נכשלה, ממשיכים עם נתונים מקומיים.', error);
-    return loadFoundReports();
+    const localEntries = safeJsonParse(localStorage.getItem(STORAGE_KEY), []);
+    if (Array.isArray(localEntries) && localEntries.length) return localEntries;
+    return fetchMockPets();
   }
 }
 
@@ -1963,7 +2007,7 @@ async function updatePetStatus(petId, newStatus) {
 function saveFoundReport(report = {}) {
   const reports = loadFoundReports();
   const saved = {
-    id: report.id || `found-${Date.now()}`,
+    id: report.id || generateUuid(),
     reportKind: String(report.reportKind || report.kind || 'found').trim() || 'found',
     imageData: String(report.imageData || '').trim(),
     animalType: inferAnimalTypeLabel(report.animalType || ''),
@@ -1980,6 +2024,7 @@ function saveFoundReport(report = {}) {
     verificationPrompt: String(report.verificationPrompt || '').trim(),
     verificationAnswerHash: String(report.verificationAnswerHash || '').trim(),
     sourcePage: String(report.sourcePage || '').trim(),
+    exactAddress: String(report.exactAddress || report.locationText || '').trim(),
     audioData: String(report.audioData || '').trim(),
     contactPhone: String(report.contactPhone || '').trim(),
     whatsappOptIn: Boolean(report.whatsappOptIn),
@@ -1987,6 +2032,8 @@ function saveFoundReport(report = {}) {
     updatedAt: new Date().toISOString(),
     status: report.reportKind === 'missing' ? PET_STATUS.LOST : PET_STATUS.FOUND,
     isVerified: Boolean(report.isVerified),
+    isAdminVerified: Boolean(report.isAdminVerified),
+    syncStatus: 'local',
   };
   reports.unshift(saved);
   saveFoundReports(reports.slice(0, 50));
@@ -2276,6 +2323,9 @@ if (typeof window !== 'undefined') {
     API_CONFIG,
     PET_STATUS,
     fetchPets,
+    fetchHomeReports,
+    fetchMockHomeReports,
+    generateUuid,
     updatePetStatus,
     loadImpactStats,
     recordImpactEvent,

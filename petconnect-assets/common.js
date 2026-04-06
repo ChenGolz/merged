@@ -15,7 +15,7 @@ const API_CONFIG = Object.freeze({
   useServer: false,
   baseUrl: 'https://your-future-server.com/api',
   cacheMs: 1000 * 60 * 5,
-  mockPetsUrl: './data/mock-pets.json',
+  mockPetsUrl: './initial-pets.json',
   mockHomeReportsUrl: './data/mock-home-reports.json',
 });
 const PET_STATUS = Object.freeze({
@@ -2010,6 +2010,26 @@ async function fetchJsonFile(url, fallback = []) {
   }
 }
 
+async function loadRemoteData({ cacheKey = '', localLoader = null, mockUrl = '', serverPath = '', fallback = [] } = {}) {
+  const networkLoader = API_CONFIG.useServer
+    ? async () => {
+        if (!serverPath) return Array.isArray(fallback) ? fallback : [];
+        const response = await fetch(`${API_CONFIG.baseUrl}${serverPath}`, { cache: 'no-store', headers: { Accept: 'application/json' } });
+        if (!response.ok) throw new Error(`${serverPath} ${response.status}`);
+        const payload = await response.json();
+        return Array.isArray(payload?.entries)
+          ? payload.entries
+          : (Array.isArray(payload?.reports) ? payload.reports : (Array.isArray(payload) ? payload : []));
+      }
+    : async () => fetchJsonFile(mockUrl, Array.isArray(fallback) ? fallback : []);
+  return fetchWithCache({
+    cacheKey,
+    localLoader,
+    networkLoader,
+    fallback,
+  });
+}
+
 async function fetchMockPets() {
   const data = await fetchJsonFile(API_CONFIG.mockPetsUrl, { entries: [] });
   return Array.isArray(data?.entries) ? data.entries : (Array.isArray(data) ? data : []);
@@ -2021,34 +2041,27 @@ async function fetchMockHomeReports() {
 }
 
 async function fetchHomeReports() {
-  return fetchWithCache({
+  return loadRemoteData({
     cacheKey: HOME_REPORTS_CACHE_KEY,
     localLoader: async () => {
       const localReports = loadFoundReports();
       return Array.isArray(localReports) ? localReports : [];
     },
-    networkLoader: async () => fetchMockHomeReports(),
+    mockUrl: API_CONFIG.mockHomeReportsUrl,
+    serverPath: '/reports',
     fallback: [],
   });
 }
 
 async function fetchPets() {
-  const localLoader = async () => {
-    const localEntries = safeJsonParse(localStorage.getItem(STORAGE_KEY), []);
-    return Array.isArray(localEntries) ? localEntries : [];
-  };
-  const networkLoader = API_CONFIG.useServer
-    ? async () => {
-        const response = await fetch(`${API_CONFIG.baseUrl}/pets`, { cache: 'no-store' });
-        if (!response.ok) throw new Error(`pets ${response.status}`);
-        const payload = await response.json();
-        return Array.isArray(payload?.entries) ? payload.entries : (Array.isArray(payload) ? payload : []);
-      }
-    : async () => fetchMockPets();
-  return fetchWithCache({
+  return loadRemoteData({
     cacheKey: PETS_CACHE_KEY,
-    localLoader,
-    networkLoader,
+    localLoader: async () => {
+      const localEntries = safeJsonParse(localStorage.getItem(STORAGE_KEY), []);
+      return Array.isArray(localEntries) ? localEntries : [];
+    },
+    mockUrl: API_CONFIG.mockPetsUrl,
+    serverPath: '/pets',
     fallback: [],
   });
 }
@@ -2135,9 +2148,9 @@ function buildPetShareMessage(pet = {}, options = {}) {
   const place = String(pet.city || pet.locationText || options.fallbackPlace || 'האזור שלכם').trim();
   const notes = String(pet.notes || pet.details || '').trim();
   const pageUrl = String(options.pageUrl || pet.pageUrl || '').trim();
-  const lines = [`ראיתם את ${label}?`, `${label} דווח/ה ב${place}.`];
+  const lines = [`ראיתם את ${label}?`, `${label} אבד/ה ב${place}.`, 'בואו נעזור להחזיר אותו הביתה.'];
   if (notes) lines.push(notes);
-  lines.push('אפשר לשתף במהירות כדי להגיע לאנשים הנכונים באזור.');
+  lines.push('שתפו את הפרטים עם מי שיכול לעזור באזור.');
   if (pageUrl) lines.push(pageUrl);
   return lines.join(' ');
 }
@@ -2407,6 +2420,7 @@ if (typeof window !== 'undefined') {
     buildCommunityWatchHref,
     shareResult,
     API_CONFIG,
+    loadRemoteData,
     PET_STATUS,
     fetchPets,
     fetchHomeReports,

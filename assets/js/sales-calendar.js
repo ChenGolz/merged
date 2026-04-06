@@ -39,7 +39,7 @@
   const inferTag = (title) => {
     const t = String(title || '').toLowerCase();
     if (/(black\s*friday|cyber\s*monday|11\.11|singles)/.test(t)) return { text: 'סייל ענק', cls: 'tag-major' };
-    if (/(prime|amazon\s+prime|big\s+deal|memorial|labor|presidents)/.test(t)) return { text: 'מבצע גדול', cls: 'tag-mid' };
+    if (/(prime|amazon\s+prime|big\s+deal|labor|presidents)/.test(t)) return { text: 'מבצע גדול', cls: 'tag-mid' };
     if (/(spring|easter|back\s*to\s*school|valentine|mother|father|boxing|green\s+monday)/.test(t)) return { text: 'מבצע עונתי', cls: 'tag-note' };
     return { text: 'תזכורת', cls: 'tag-note' };
   };

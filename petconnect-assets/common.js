@@ -11,6 +11,16 @@ const LANG_STORAGE_KEY = 'appLanguage';
 const LANG_STORAGE_ALIAS_KEY = 'appLang';
 const LEGACY_LANG_STORAGE_KEY = 'petconnect-ui-lang-v1';
 
+const CONFIG = Object.freeze({
+  DEV_MODE: true,
+  API_URL: 'https://api.petconnect.co.il/v1',
+  CACHE_TIME: 1000 * 60 * 5,
+});
+const API_CONFIG = Object.freeze({
+  useServer: !CONFIG.DEV_MODE,
+  baseUrl: CONFIG.API_URL,
+});
+
 window.FOUND_REPORTS_KEY = window.FOUND_REPORTS_KEY || FOUND_REPORTS_KEY;
 window.PENDING_FOUND_REPORT_KEY = window.PENDING_FOUND_REPORT_KEY || PENDING_FOUND_REPORT_KEY;
 window.PENDING_IMAGE_KEY = window.PENDING_IMAGE_KEY || 'pendingImage';
@@ -1441,6 +1451,72 @@ async function loadRepoLibrary() {
   }
 }
 
+
+async function fetchPets() {
+  if (!API_CONFIG.useServer) {
+    return safeJsonParse(localStorage.getItem(STORAGE_KEY), []);
+  }
+  try {
+    const response = await fetch(`${API_CONFIG.baseUrl}/pets`, { headers: { Accept: 'application/json' } });
+    if (!response.ok) throw new Error(`pets ${response.status}`);
+    const payload = await response.json();
+    return Array.isArray(payload?.entries) ? payload.entries : (Array.isArray(payload) ? payload : []);
+  } catch (error) {
+    console.warn('Server error:', error);
+    return safeJsonParse(localStorage.getItem(STORAGE_KEY), []);
+  }
+}
+
+function getAffiliateQuickTip(match = {}) {
+  const type = String(match.animalType || '').trim();
+  if (type.includes('חת')) {
+    return {
+      text: 'טיפ מהיר: מנשא שקט ומקום מסתור בטוח יכולים להוריד לחץ כבר בדרך הביתה.',
+      href: './shop.html#cats',
+      label: 'למוצרים מומלצים לחתולים',
+    };
+  }
+  if (type.includes('כל')) {
+    return {
+      text: 'טיפ מהיר: קולר עם תג שם ורצועה בטוחה יכולים לחסוך שעות יקרות בחיפוש.',
+      href: './shop.html#tags',
+      label: 'לציוד חיפוש מומלץ',
+    };
+  }
+  return {
+    text: 'טיפ מהיר: ציוד בסיסי, מים וסביבה רגועה יכולים לעשות הבדל גדול בימים הראשונים.',
+    href: './shop.html#rescue-kit',
+    label: 'לערכת ההמלצות',
+  };
+}
+
+function renderInlineAffiliateCard(index = 0) {
+  const cards = [
+    {
+      eyebrow: 'טיפ למוצאים',
+      title: 'הכלב לחוץ?',
+      text: 'מומלץ להשתמש בחטיפי הרגעה עדינים או ברצועה בטוחה בימים הראשונים.',
+      href: './shop.html#calming',
+      cta: 'לצפייה במוצרים המומלצים ←',
+    },
+    {
+      eyebrow: 'טיפ בטיחות',
+      title: 'הגנו על החבר שלכם',
+      text: 'קולר עם תג שם מגדיל משמעותית את הסיכוי לחזרה מהירה הביתה.',
+      href: './shop.html#tags',
+      cta: 'לצפייה בתגים המומלצים ←',
+    },
+  ];
+  const card = cards[index % cards.length];
+  return `
+    <article class="affiliate-inline-card" aria-label="המלצה עדינה לציוד חיוני">
+      <span class="eyebrow">${escapeHtml(card.eyebrow)}</span>
+      <strong>${escapeHtml(card.title)}</strong>
+      <p>${escapeHtml(card.text)}</p>
+      <a href="${escapeHtml(card.href)}" class="btn-text">${escapeHtml(card.cta)}</a>
+    </article>`;
+}
+
 function loadLocalLibrary() {
   const data = safeJsonParse(localStorage.getItem(STORAGE_KEY), []);
   return Array.isArray(data) ? data : [];
@@ -1461,7 +1537,7 @@ function saveImportedLibrary(entries) {
 
 async function getMergedLibrary() {
   const repo = (await loadRepoLibrary()).map((entry) => normalizeEntry({ ...entry, source: 'repo' }));
-  const local = loadLocalLibrary().map((entry) => normalizeEntry({ ...entry, source: 'local' }));
+  const local = (await fetchPets()).map((entry) => normalizeEntry({ ...entry, source: 'local' }));
   const imported = loadImportedLibrary().map((entry) => normalizeEntry({ ...entry, source: 'imported' }));
   return [...repo, ...local, ...imported].filter((entry) => entry.descriptors.length || entry.colorHistograms.length);
 }
@@ -1714,8 +1790,11 @@ function renderMatchCards(matches = [], options = {}) {
     const profileButton = target
       ? `<a class="view-btn" href="${escapeHtml(target)}">לפרטים ועזרה</a>`
       : `<a class="view-btn" href="./search.html">לפרטים ועזרה</a>`;
-    const affiliateButton = '<a class="affiliate-link" href="./shop.html">ציוד מומלץ לחיפוש 🔍</a>';
+    const quickTip = getAffiliateQuickTip(match);
+    const affiliateButton = `<a class="affiliate-link btn-affiliate" href="${escapeHtml(quickTip.href)}">${escapeHtml(quickTip.label)}</a>`;
+    const shareButton = `<a class="share-link" href="${buildWhatsAppHref({ city: match.city, locationText: match.locationText, reportedAt: match.reportedAt, lat: Number(match.lat), lng: Number(match.lng), bestMatch: match })}" target="_blank" rel="noopener">שתפו בווטסאפ</a>`;
     const verifyButton = match.verificationPrompt ? `<button class="secondary small" type="button" data-verify-index="${index}">בדיקת סימן זיהוי</button>` : '';
+    const promoInsert = ((index + 1) % 3 === 0) ? renderInlineAffiliateCard(index) : '';
     return `
       <article class="animal-card match-card result-card bundleCard animalCard" data-match-index="${index}">
         <div class="card-image">${thumb}<span class="status-badge">${statusLabel}</span></div>
@@ -1734,13 +1813,15 @@ function renderMatchCards(matches = [], options = {}) {
             ${verifyBadge}
           </div>
           ${breakdown}
+          <div class="card-quick-tip">${escapeHtml(quickTip.text)} <a href="${escapeHtml(quickTip.href)}">${escapeHtml(quickTip.label)}</a></div>
           <div class="card-footer">
             ${profileButton}
             ${affiliateButton}
+            ${shareButton}
             ${verifyButton}
           </div>
         </div>
-      </article>`;
+      </article>${promoInsert}`;
   }).join('');
 }
 
@@ -2236,6 +2317,10 @@ if (typeof window !== 'undefined') {
     renderFoundReportCards,
     mountLanguageSwitcher,
     bootUiShell,
+    fetchSummaryStats,
+    fetchPets,
+    CONFIG,
+    API_CONFIG,
     getResolvedTheme,
     applyTheme,
     toggleTheme,

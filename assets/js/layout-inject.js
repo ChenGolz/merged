@@ -6,7 +6,7 @@
 // KBWG single version + fetch helpers
 // Update KBWG_BUILD below to bust cache for ALL pages + JSON.
 // ============================================================
-const KBWG_BUILD = '2026-02-11-v1';
+const KBWG_BUILD = '2026-04-06-v3';
 window.KBWG_BUILD = window.KBWG_BUILD || KBWG_BUILD;
 window.KBWG_VER = window.KBWG_VER || window.KBWG_BUILD;
 
@@ -50,7 +50,7 @@ window.kbwgFetch = window.kbwgFetch || function(input, init){
 };
 
 
-const KBWG_LAYOUT_BUILD = String(window.KBWG_BUILD || '2026-02-11-v1');
+const KBWG_LAYOUT_BUILD = String(window.KBWG_BUILD || '2026-04-06-v3');
 const KBWG_HEADER_KEY = 'kbwg_header_' + KBWG_LAYOUT_BUILD;
 const KBWG_FOOTER_KEY = 'kbwg_footer_' + KBWG_LAYOUT_BUILD;
 

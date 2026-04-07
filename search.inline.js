@@ -104,6 +104,16 @@ async function runSearchPage() {
   const searchMode = (new URLSearchParams(window.location.search).get('mode') || sessionStorage.getItem('petconnect-search-mode-v1') || 'found').toLowerCase() === 'lost' ? 'lost' : 'found';
   try { sessionStorage.setItem('petconnect-search-mode-v1', searchMode); } catch (error) {}
 
+  const searchParams = new URLSearchParams(window.location.search);
+  const presetQuery = String(searchParams.get('q') || '').trim();
+  const presetType = String(searchParams.get('type') || '').trim();
+  const presetNear = String(searchParams.get('near') || '').trim();
+  const applyPresetSearch = () => {
+    if (presetType && queryAnimalTypeEl && !queryAnimalTypeEl.value) queryAnimalTypeEl.value = presetType;
+    if (presetNear && cityInput && !cityInput.value) cityInput.value = presetNear;
+    if (presetQuery && locationTextInput && !locationTextInput.value) locationTextInput.value = presetQuery;
+  };
+
   function getReportKindForSearchMode() {
     return searchMode === 'lost' ? 'missing' : 'found';
   }
@@ -133,6 +143,7 @@ async function runSearchPage() {
   const verificationCheckBtn = document.getElementById('verification-check-btn');
 
   [fileInput, cityInput, queryAnimalTypeEl, breedInput].forEach(clearValidityOnInput);
+  applyPresetSearch();
   attachCityAutocomplete?.(cityInput);
   attachBreedAutocomplete?.(breedInput, queryAnimalTypeEl);
   minScoreOutput.textContent = `${minScoreInput.value}%`;

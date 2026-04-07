@@ -13,47 +13,17 @@ const LEGACY_LANG_STORAGE_KEY = 'petconnect-ui-lang-v1';
 
 const API_CONFIG = Object.freeze({
   useServer: false,
-  baseUrl: 'https://your-future-server.com/api',
-  cacheMs: 1000 * 60 * 5,
-  mockPetsUrl: null,
-  mockHomeReportsUrl: null,
+  baseUrl: '',
+  timeoutMs: 1400,
 });
+const PET_FEED_CACHE_KEY = 'petconnect-pet-feed-cache-v2';
+const PET_FEED_REMOTE_PATH = './data/initial-pets.json';
+const BROWSER_USER_ID_KEY = 'petconnect-browser-user-id-v1';
 const PET_STATUS = Object.freeze({
   LOST: 'lost',
   FOUND: 'found',
   REUNITED: 'reunited',
 });
-const PETS_CACHE_KEY = 'petconnect-pets-cache-v1';
-const HOME_REPORTS_CACHE_KEY = 'petconnect-home-reports-cache-v1';
-function resolveDataUrl(relativePath = '') {
-  try {
-    return new URL(relativePath, window.location.href).href;
-  } catch (error) {
-    return relativePath;
-  }
-}
-
-const RESOLVED_DATA_URLS = Object.freeze({
-  pets: resolveDataUrl('./data/initial-pets.json'),
-  homeReports: resolveDataUrl('./data/mock-home-reports.json'),
-});
-
-const INLINE_HELP_TIPS = Object.freeze([
-  {
-    eyebrow: 'טיפ למוצאים',
-    title: 'הכלב לחוץ?',
-    text: 'שבו נמוך, הימנעו מריצה לכיוונו והציעו מים וחטיף רגוע אם יש בהישג יד.',
-    href: 'shop.html#calming',
-    cta: 'לציוד שיכול לעזור בשטח'
-  },
-  {
-    eyebrow: 'טיפ בטיחות',
-    title: 'חיפוש ערב קצר ומדויק',
-    text: 'פנס, רצועה קצרה ותג שם זמני יכולים לעזור מאוד בדקות הראשונות של האיתור.',
-    href: 'shop.html#rescue-kit',
-    cta: 'לערכת החיפוש השקטה'
-  }
-]);
 
 window.FOUND_REPORTS_KEY = window.FOUND_REPORTS_KEY || FOUND_REPORTS_KEY;
 window.PENDING_FOUND_REPORT_KEY = window.PENDING_FOUND_REPORT_KEY || PENDING_FOUND_REPORT_KEY;
@@ -91,13 +61,6 @@ function hashString(text) {
   return Math.abs(hash).toString(36);
 }
 
-function generateUuid() {
-  try {
-    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') return crypto.randomUUID();
-  } catch (error) {}
-  return `pet-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-}
-
 function slugify(text) {
   const original = String(text || '').trim();
   const slug = original
@@ -115,6 +78,162 @@ function safeJsonParse(text, fallback) {
   } catch {
     return fallback;
   }
+}
+
+
+function generateUuid() {
+  try {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+  } catch (error) {}
+  return `pet-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function getBrowserUserId() {
+  const existing = storageGet(localStorage, BROWSER_USER_ID_KEY, '');
+  if (existing) return existing;
+  const next = generateUuid();
+  storageSet(localStorage, BROWSER_USER_ID_KEY, next);
+  return next;
+}
+
+function normalizeTextField(value = '') {
+  return String(value || '').trim().replace(/\s+/g, ' ');
+}
+
+function normalizePhone(value = '') {
+  return String(value || '').replace(/[^0-9+]/g, '').trim();
+}
+
+function normalizePetStatus(value = '') {
+  const raw = String(value || '').trim().toLowerCase();
+  if (raw === PET_STATUS.FOUND || raw === PET_STATUS.REUNITED || raw === 'missing') return raw;
+  if (raw === 'lost' || raw === 'missing') return PET_STATUS.LOST;
+  if (raw === 'found' || raw === 'local') return PET_STATUS.FOUND;
+  return PET_STATUS.LOST;
+}
+
+function normalizeReportRecord(report = {}) {
+  const createdAt = normalizeTextField(report.createdAt || report.reportedAt || new Date().toISOString());
+  const reportedAt = normalizeTextField(report.reportedAt || createdAt || new Date().toISOString());
+  const updatedAt = normalizeTextField(report.updatedAt || new Date().toISOString());
+  const lat = Number.isFinite(Number(report.lat)) ? Number(report.lat) : null;
+  const lng = Number.isFinite(Number(report.lng)) ? Number(report.lng) : null;
+  const coords = lat != null && lng != null ? { lat, lng } : null;
+  const imageData = normalizeTextField(report.imageData || report.image || report.thumb || '');
+  const id = normalizeTextField(report.id) || generateUuid();
+  const status = normalizePetStatus(report.status || report.reportKind || report.kind || report.state || 'lost');
+  const name = normalizeTextField(report.name || report.petName || report.label || '');
+  const animalType = inferAnimalTypeLabel(report.animalType || report.type || name || '');
+  const breed = normalizeTextField(report.breed || '');
+  const colors = normalizeTextField(report.colors || report.colorName || '');
+  const city = normalizeTextField(report.city || '');
+  const exactAddress = normalizeTextField(report.exactAddress || report.address || '');
+  const locationText = normalizeTextField(report.locationText || exactAddress || city || '');
+  const description = normalizeTextField(report.description || report.notes || '');
+  const notes = normalizeTextField(report.notes || report.description || '');
+  const record = {
+    ...report,
+    id,
+    slug: normalizeTextField(report.slug || slugify(`${name || animalType || 'pet'}-${city || reportedAt}`)),
+    name,
+    animalType,
+    breed,
+    colors,
+    colorName: colors,
+    city,
+    exactAddress,
+    locationText,
+    description,
+    notes,
+    imageData,
+    thumb: imageData,
+    status,
+    reportKind: status === PET_STATUS.FOUND ? 'found' : status === PET_STATUS.REUNITED ? 'reunited' : 'missing',
+    reportedAt,
+    createdAt,
+    updatedAt,
+    expiresAt: normalizeTextField(report.expiresAt || new Date(Date.now() + (1000 * 60 * 60 * 24 * 30)).toISOString()),
+    lat,
+    lng,
+    coords,
+    sizeLabel: normalizeTextField(report.sizeLabel || report.size || ''),
+    sex: normalizeTextField(report.sex || ''),
+    contactName: normalizeTextField(report.contactName || ''),
+    contactPhone: normalizePhone(report.contactPhone || report.phone || ''),
+    whatsappOptIn: Boolean(report.whatsappOptIn ?? true),
+    isAdminVerified: Boolean(report.isAdminVerified || report.verified || false),
+    ownerBrowserId: normalizeTextField(report.ownerBrowserId || getBrowserUserId()),
+    source: normalizeTextField(report.source || 'local'),
+    href: `./pet-details.html?id=${encodeURIComponent(id)}`,
+  };
+  return record;
+}
+
+async function loadRemoteData(path = PET_FEED_REMOTE_PATH) {
+  if (API_CONFIG.useServer && API_CONFIG.baseUrl) {
+    const response = await fetch(`${API_CONFIG.baseUrl}${path}`);
+    if (!response.ok) throw new Error('Failed to load remote data');
+    return response.json();
+  }
+  const response = await fetch(path, { cache: 'no-store' });
+  if (!response.ok) throw new Error('Failed to load local JSON');
+  return response.json();
+}
+
+async function loadPetFeed() {
+  const localRecords = (() => {
+    const seeded = safeJsonParse(storageGet(localStorage, PET_FEED_CACHE_KEY, '[]'), []);
+    const found = loadFoundReports();
+    const merged = [...(Array.isArray(found) ? found : []), ...(Array.isArray(seeded) ? seeded : [])].map(normalizeReportRecord);
+    const deduped = new Map();
+    merged.forEach((record) => deduped.set(record.id, record));
+    return Array.from(deduped.values());
+  })();
+
+  const remotePromise = loadRemoteData(PET_FEED_REMOTE_PATH)
+    .then((items) => Array.isArray(items) ? items.map(normalizeReportRecord) : [])
+    .then((remoteRecords) => {
+      storageSet(localStorage, PET_FEED_CACHE_KEY, JSON.stringify(remoteRecords));
+      const combined = [...localRecords, ...remoteRecords].reduce((acc, record) => {
+        acc.set(record.id, record);
+        return acc;
+      }, new Map());
+      return Array.from(combined.values())
+        .filter((record) => !record.expiresAt || new Date(record.expiresAt).getTime() > Date.now())
+        .sort((a, b) => new Date(b.reportedAt || b.createdAt || 0).getTime() - new Date(a.reportedAt || a.createdAt || 0).getTime());
+    })
+    .catch(() => localRecords);
+
+  if (localRecords.length) {
+    remotePromise.catch(() => {});
+    return Promise.race([
+      Promise.resolve(localRecords.sort((a, b) => new Date(b.reportedAt || b.createdAt || 0).getTime() - new Date(a.reportedAt || a.createdAt || 0).getTime())),
+      remotePromise,
+    ]);
+  }
+  return remotePromise;
+}
+
+async function findPetById(id = '') {
+  const all = await loadPetFeed();
+  return (Array.isArray(all) ? all : []).find((item) => String(item.id) === String(id) || String(item.slug) === String(id)) || null;
+}
+
+function buildPetDetailsHref(record = {}) {
+  const id = normalizeTextField(record.id || record.slug || '');
+  return id ? `./pet-details.html?id=${encodeURIComponent(id)}` : './pet-details.html';
+}
+
+function buildWhatsAppShare(record = {}, options = {}) {
+  const title = normalizeTextField(record.name || record.animalType || 'חיה');
+  const city = normalizeTextField(record.city || 'האזור שלך');
+  const url = normalizeTextField(options.url || record.href || buildPetDetailsHref(record));
+  const statusLabel = normalizePetStatus(record.status) === PET_STATUS.FOUND ? 'נמצאה' : normalizePetStatus(record.status) === PET_STATUS.REUNITED ? 'חזרה הביתה' : 'אבדה';
+  const text = `${statusLabel} ${title}${city ? ` ב${city}` : ''}. עזרו לנו להחזיר אותו הביתה: ${url}`;
+  return {
+    text,
+    href: `https://wa.me/?text=${encodeURIComponent(text)}`,
+  };
 }
 
 function storageGet(storage, key, fallback = null) {
@@ -142,65 +261,6 @@ function storageRemove(storage, key) {
   } catch {
     return false;
   }
-}
-
-
-function readTimedCache(key, maxAge = API_CONFIG.cacheMs) {
-  const payload = safeJsonParse(storageGet(localStorage, key, 'null'), null);
-  if (!payload || !Array.isArray(payload.data)) return null;
-  const updatedAt = Number(payload.updatedAt || 0);
-  if (maxAge && updatedAt && (Date.now() - updatedAt) > maxAge) return null;
-  return payload.data;
-}
-
-function writeTimedCache(key, data) {
-  if (!Array.isArray(data)) return false;
-  return storageSet(localStorage, key, JSON.stringify({ updatedAt: Date.now(), data }));
-}
-
-async function fetchWithCache(options = {}) {
-  const { cacheKey, localLoader, networkLoader, fallback = [] } = options;
-  const cached = cacheKey ? readTimedCache(cacheKey) : null;
-  if (cached && cached.length) {
-    if (typeof networkLoader === 'function') {
-      Promise.resolve().then(async () => {
-        try {
-          const fresh = await networkLoader();
-          if (Array.isArray(fresh) && fresh.length && cacheKey) writeTimedCache(cacheKey, fresh);
-        } catch (error) {
-          console.warn('רענון נתונים ברקע נכשל:', error);
-        }
-      });
-    }
-    return cached;
-  }
-  const localData = typeof localLoader === 'function' ? await localLoader() : [];
-  if (Array.isArray(localData) && localData.length) {
-    if (cacheKey) writeTimedCache(cacheKey, localData);
-    if (typeof networkLoader === 'function') {
-      Promise.resolve().then(async () => {
-        try {
-          const fresh = await networkLoader();
-          if (Array.isArray(fresh) && fresh.length && cacheKey) writeTimedCache(cacheKey, fresh);
-        } catch (error) {
-          console.warn('רענון נתונים ברקע נכשל:', error);
-        }
-      });
-    }
-    return localData;
-  }
-  if (typeof networkLoader === 'function') {
-    try {
-      const fresh = await networkLoader();
-      if (Array.isArray(fresh) && fresh.length) {
-        if (cacheKey) writeTimedCache(cacheKey, fresh);
-        return fresh;
-      }
-    } catch (error) {
-      console.warn('טעינת נתונים נכשלה:', error);
-    }
-  }
-  return Array.isArray(fallback) ? fallback : [];
 }
 
 function normalizeNumericArray(values) {
@@ -1800,28 +1860,28 @@ function shrinkImage(file, options = {}) {
   });
 }
 
+
 function renderMatchCards(matches = [], options = {}) {
   const kind = options.kind || 'visual';
-  return matches.map((match, index) => {
-    const target = match.href && match.href !== '#' ? match.href : '';
-    const safeLabel = escapeHtml(String(match.label || 'ללא שם'));
-    const safeNotes = escapeHtml(String(match.notes || ''));
-    const animalType = match.animalType ? `<span class="badge">${escapeHtml(match.animalType)}</span>` : '';
-    const breed = match.breed ? `<span class="badge">${escapeHtml(match.breed)}</span>` : '';
-    const colors = match.colors ? `<span class="badge">${escapeHtml(match.colors)}</span>` : (match.colorName ? `<span class="badge">${escapeHtml(match.colorName)}</span>` : '');
-    const notes = match.notes ? `<div class="small">${safeNotes}</div>` : '';
-    const thumb = match.thumb
-      ? `<div class="thumb-wrap blur-shell"><img class="pet-result-avatar blur-up is-loading" loading="lazy" decoding="async" onload="this.classList.remove('is-loading')" src="${match.thumb}" alt="${safeLabel}"></div>`
+  const cards = [];
+  matches.forEach((match, index) => {
+    const normalized = normalizeReportRecord(match || {});
+    const target = normalized.href && normalized.href !== '#' ? normalized.href : buildPetDetailsHref(normalized);
+    const safeLabel = escapeHtml(String(normalized.name || normalized.label || normalized.animalType || 'ללא שם'));
+    const safeNotes = escapeHtml(String(normalized.notes || normalized.description || ''));
+    const animalType = normalized.animalType ? `<span class="badge">${escapeHtml(normalized.animalType)}</span>` : '';
+    const breed = normalized.breed ? `<span class="badge">${escapeHtml(normalized.breed)}</span>` : '';
+    const colors = normalized.colors ? `<span class="badge">${escapeHtml(normalized.colors)}</span>` : '';
+    const notes = safeNotes ? `<div class="small">${safeNotes}</div>` : '';
+    const thumbSrc = normalized.thumb || normalized.imageData || normalized.image || '';
+    const thumb = thumbSrc
+      ? `<div class="thumb-wrap blur-shell"><img class="pet-result-avatar blur-up is-loading" loading="lazy" decoding="async" onload="this.classList.remove('is-loading')" src="${thumbSrc}" alt="${safeLabel}"></div>`
       : '<div class="thumb-wrap"><div class="small">אין תמונה</div></div>';
     const score = kind === 'visual' ? Number(match.score || 0) : Number(match.colorScore || match.score || 0);
-    const scoreText = kind === 'visual' ? `${Math.round(score * 100)}% התאמה` : `צבע ${Math.round(score * 100)}%`;
-    const reason = kind === 'visual' ? 'התאמה מיידית מהסריקה' : 'תוצאת גיבוי לפי צבעים דומים';
-    const breakdown = kind === 'visual'
-      ? `<div class="small muted">הטמעה/מבנה ${Math.round(Number(match.embeddingScore || match.rawScore || 0) * 100)}% · צבע פרווה ${Math.round(Number(match.colorScore || 0) * 100)}%${Number(match.breedScore || 0) ? ` · גזע ${Math.round(Number(match.breedScore || 0) * 100)}%` : ''}</div>`
-      : '';
-    const profileButton = target ? `<a class="button-link small" href="${escapeHtml(target)}">פתיחת פרופיל</a>` : '<span class="badge">אין קישור פרופיל</span>';
-    const verifyButton = match.verificationPrompt ? `<button class="secondary small" type="button" data-verify-index="${index}">בדיקת סימן זיהוי</button>` : '';
-    return `
+    const scoreText = score ? (kind === 'visual' ? `${Math.round(score * 100)}% התאמה` : `צבע ${Math.round(score * 100)}%`) : 'דיווח קהילתי';
+    const reason = normalized.status === PET_STATUS.FOUND ? 'דיווח של חיה שנמצאה' : normalized.status === PET_STATUS.REUNITED ? 'סיפור הצלחה מהקהילה' : 'דיווח של חיה שאבדה';
+    const share = buildWhatsAppShare(normalized, { url: new URL(target, window.location.href).href });
+    cards.push(`
       <article class="match-card result-card bundleCard animalCard" data-match-index="${index}">
         ${thumb}
         <div class="body">
@@ -1833,16 +1893,27 @@ function renderMatchCards(matches = [], options = {}) {
             ${animalType}
             ${breed}
             ${colors}
-            ${match.source ? `<span class="badge">${sourceLabel(match.source)}</span>` : ''}
-            ${match.verificationPrompt ? '<span class="badge">כולל סימן זיהוי</span>' : ''}
+            ${normalized.city ? `<span class="badge">${escapeHtml(normalized.city)}</span>` : ''}
+            ${normalized.isAdminVerified ? '<span class="badge">אומת</span>' : ''}
           </div>
           <div class="small">${reason}</div>
-          ${breakdown}
           ${notes}
-          <div class="card-actions">${profileButton}${verifyButton}</div>
+          <div class="card-actions">
+            <a class="button-link small primary-card-action" href="${escapeHtml(target)}">לפרטים ועזרה</a>
+            <a class="button-link small" href="${escapeHtml(share.href)}" target="_blank" rel="noopener">שתפו בווטסאפ</a>
+          </div>
         </div>
-      </article>`;
-  }).join('');
+      </article>`);
+    if ((index + 1) % 3 === 0 && index !== matches.length - 1) {
+      cards.push(`
+        <article class="inline-help-card" aria-label="טיפ מהיר לחיפוש">
+          <span class="eyebrow">טיפ מהיר</span>
+          <strong>שמרו על חיפוש רגוע ומסודר</strong>
+          <p>אם ראיתם חיה אבודה, עדיף לצלם מרחוק, לשתף מיקום מדויק ולא לרדוף אחריה. כל פרט קטן יכול לעזור.</p>
+        </article>`);
+    }
+  });
+  return cards.join('');
 }
 
 
@@ -1911,7 +1982,7 @@ function buildPendingFoundReportDraft(payload = {}) {
   const sizeLabel = String(payload.sizeLabel || '').trim();
   const colorName = String(payload.colorName || payload.colors || '').trim();
   return {
-    id: payload.id || generateUuid(),
+    id: payload.id || `draft-${Date.now()}`,
     reportKind: String(payload.reportKind || payload.kind || 'found').trim() || 'found',
     imageData,
     animalType,
@@ -1927,13 +1998,11 @@ function buildPendingFoundReportDraft(payload = {}) {
     notes: String(payload.notes || '').trim(),
     searchRadiusKm: Number(payload.searchRadiusKm || 0) || 0,
     sourcePage: String(payload.sourcePage || window.location.href).trim(),
-    exactAddress: String(payload.exactAddress || payload.locationText || '').trim(),
     quickPost: Boolean(payload.quickPost),
     querySummary: String(payload.querySummary || '').trim(),
     audioData: String(payload.audioData || '').trim(),
     contactPhone: String(payload.contactPhone || '').trim(),
     whatsappOptIn: Boolean(payload.whatsappOptIn),
-    isAdminVerified: Boolean(payload.isAdminVerified),
   };
 }
 
@@ -2003,220 +2072,50 @@ function clearPendingFoundReportDraft() {
   storageRemove(localStorage, 'pendingImage');
 }
 
+
 function loadFoundReports() {
   const parsed = safeJsonParse(storageGet(localStorage, getFoundReportsKey(), '[]'), []);
-  return Array.isArray(parsed) ? parsed : [];
+  return (Array.isArray(parsed) ? parsed : []).map(normalizeReportRecord);
 }
 
 function saveFoundReports(reports = []) {
-  storageSet(localStorage, getFoundReportsKey(), JSON.stringify(Array.isArray(reports) ? reports : []));
-}
-
-async function fetchJsonFile(url, fallback = []) {
-  try {
-    const response = await fetch(url, { cache: 'no-store', headers: { Accept: 'application/json' } });
-    if (!response.ok) throw new Error(`${url} ${response.status}`);
-    return await response.json();
-  } catch (error) {
-    console.warn(error);
-    return fallback;
-  }
-}
-
-async function loadRemoteData({ cacheKey = '', localLoader = null, mockUrl = '', serverPath = '', fallback = [] } = {}) {
-  const networkLoader = API_CONFIG.useServer
-    ? async () => {
-        if (!serverPath) return Array.isArray(fallback) ? fallback : [];
-        const response = await fetch(`${API_CONFIG.baseUrl}${serverPath}`, { cache: 'no-store', headers: { Accept: 'application/json' } });
-        if (!response.ok) throw new Error(`${serverPath} ${response.status}`);
-        const payload = await response.json();
-        return Array.isArray(payload?.entries)
-          ? payload.entries
-          : (Array.isArray(payload?.reports) ? payload.reports : (Array.isArray(payload) ? payload : []));
-      }
-    : async () => fetchJsonFile(mockUrl, Array.isArray(fallback) ? fallback : []);
-
-  const cached = cacheKey ? readTimedCache(cacheKey) : null;
-  if (cached && cached.length) {
-    Promise.resolve().then(async () => {
-      try {
-        const fresh = await networkLoader();
-        if (Array.isArray(fresh) && fresh.length && cacheKey) writeTimedCache(cacheKey, fresh);
-      } catch (error) {
-        console.warn('רענון נתונים ברקע נכשל:', error);
-      }
-    });
-    return cached;
-  }
-
-  const taggedLocal = Promise.resolve().then(async () => {
-    const localData = typeof localLoader === 'function' ? await localLoader() : [];
-    return { source: 'local', data: Array.isArray(localData) ? localData : [] };
-  }).catch(() => ({ source: 'local', data: [] }));
-
-  const taggedNetwork = Promise.resolve().then(async () => {
-    const networkData = await networkLoader();
-    return { source: 'network', data: Array.isArray(networkData) ? networkData : [] };
-  }).catch((error) => {
-    console.warn('טעינת נתונים נכשלה:', error);
-    return { source: 'network', data: [] };
-  });
-
-  const winner = await Promise.race([taggedLocal, taggedNetwork]);
-  const other = winner.source === 'local' ? taggedNetwork : taggedLocal;
-
-  if (Array.isArray(winner.data) && winner.data.length) {
-    if (cacheKey) writeTimedCache(cacheKey, winner.data);
-    Promise.resolve(other).then(({ data }) => {
-      if (Array.isArray(data) && data.length && cacheKey) writeTimedCache(cacheKey, data);
-    }).catch(() => {});
-    return winner.data;
-  }
-
-  const fallbackResult = await other;
-  if (Array.isArray(fallbackResult.data) && fallbackResult.data.length) {
-    if (cacheKey) writeTimedCache(cacheKey, fallbackResult.data);
-    return fallbackResult.data;
-  }
-
-  return Array.isArray(fallback) ? fallback : [];
-}
-
-async function fetchMockPets() {
-  const data = await fetchJsonFile(RESOLVED_DATA_URLS.pets, { entries: [] });
-  return Array.isArray(data?.entries) ? data.entries : (Array.isArray(data) ? data : []);
-}
-
-async function fetchMockHomeReports() {
-  const data = await fetchJsonFile(RESOLVED_DATA_URLS.homeReports, { reports: [] });
-  return Array.isArray(data?.reports) ? data.reports : (Array.isArray(data) ? data : []);
-}
-
-async function fetchHomeReports() {
-  return loadRemoteData({
-    cacheKey: HOME_REPORTS_CACHE_KEY,
-    localLoader: async () => {
-      const localReports = loadFoundReports();
-      return Array.isArray(localReports) ? localReports : [];
-    },
-    mockUrl: RESOLVED_DATA_URLS.homeReports,
-    serverPath: '/reports',
-    fallback: [],
-  });
-}
-
-async function fetchPets() {
-  return loadRemoteData({
-    cacheKey: PETS_CACHE_KEY,
-    localLoader: async () => {
-      const localEntries = safeJsonParse(localStorage.getItem(STORAGE_KEY), []);
-      return Array.isArray(localEntries) ? localEntries : [];
-    },
-    mockUrl: RESOLVED_DATA_URLS.pets,
-    serverPath: '/pets',
-    fallback: [],
-  });
-}
-
-async function updatePetStatus(petId, newStatus) {
-  const nextStatus = Object.values(PET_STATUS).includes(newStatus) ? newStatus : PET_STATUS.FOUND;
-  if (API_CONFIG.useServer) {
-    try {
-      const response = await fetch(`${API_CONFIG.baseUrl}/pets/${encodeURIComponent(petId)}/status`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: nextStatus }),
-      });
-      if (!response.ok) throw new Error(`pet status ${response.status}`);
-    } catch (error) {
-      console.warn('עדכון הסטטוס בשרת נכשל, מבוצע עדכון מקומי בלבד.', error);
-    }
-  }
-  const reports = loadFoundReports();
-  const updated = reports.map((report) => report.id === petId ? { ...report, status: nextStatus, updatedAt: new Date().toISOString() } : report);
-  saveFoundReports(updated);
-  return updated.find((report) => report.id === petId) || null;
+  const normalized = (Array.isArray(reports) ? reports : []).map(normalizeReportRecord);
+  storageSet(localStorage, getFoundReportsKey(), JSON.stringify(normalized));
 }
 
 function saveFoundReport(report = {}) {
   const reports = loadFoundReports();
-  const saved = {
+  const saved = normalizeReportRecord({
+    ...report,
     id: report.id || generateUuid(),
-    reportKind: String(report.reportKind || report.kind || 'found').trim() || 'found',
-    imageData: String(report.imageData || '').trim(),
-    animalType: inferAnimalTypeLabel(report.animalType || ''),
-    breed: String(report.breed || '').trim(),
-    colorName: String(report.colorName || report.colors || '').trim(),
-    colors: String(report.colors || report.colorName || '').trim(),
-    city: String(report.city || '').trim(),
-    locationText: String(report.locationText || '').trim(),
-    reportedAt: String(report.reportedAt || new Date().toISOString()).trim(),
-    lat: Number.isFinite(report.lat) ? Number(report.lat) : null,
-    lng: Number.isFinite(report.lng) ? Number(report.lng) : null,
-    sizeLabel: String(report.sizeLabel || '').trim(),
-    notes: String(report.notes || '').trim(),
-    verificationPrompt: String(report.verificationPrompt || '').trim(),
-    verificationAnswerHash: String(report.verificationAnswerHash || '').trim(),
-    sourcePage: String(report.sourcePage || '').trim(),
-    exactAddress: String(report.exactAddress || report.locationText || '').trim(),
-    audioData: String(report.audioData || '').trim(),
-    contactPhone: String(report.contactPhone || '').trim(),
-    whatsappOptIn: Boolean(report.whatsappOptIn),
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    status: report.reportKind === 'missing' ? PET_STATUS.LOST : PET_STATUS.FOUND,
-    isVerified: Boolean(report.isVerified),
+    status: report.status || report.reportKind || report.kind || PET_STATUS.FOUND,
+    source: 'local',
     isAdminVerified: Boolean(report.isAdminVerified),
-    syncStatus: 'local',
-  };
+    createdAt: report.createdAt || new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  });
   reports.unshift(saved);
-  saveFoundReports(reports.slice(0, 50));
+  saveFoundReports(reports.slice(0, 80));
   return saved;
 }
 
+
 function buildFoundReportShareText(report = {}, options = {}) {
-  const kind = String(report.reportKind || report.kind || 'found').trim() || 'found';
-  const lines = [kind === 'missing' ? 'אבדה חיה דרך פאטקונקט' : 'נמצאה חיה דרך פאטקונקט'];
-  if (report.animalType) lines.push(`סוג: ${report.animalType}`);
-  if (report.breed) lines.push(`גזע: ${report.breed}`);
-  if (report.colors || report.colorName) lines.push(`צבע: ${report.colors || report.colorName}`);
-  if (report.city) lines.push(`עיר: ${report.city}`);
-  if (report.locationText) lines.push(`אזור: ${report.locationText}`);
-  if (report.reportedAt) lines.push(`זמן: ${formatReportedAt(report.reportedAt)}`);
-  if (report.contactPhone) lines.push(`טלפון: ${report.contactPhone}`);
-  if (report.notes) lines.push(`פרטים נוספים: ${report.notes}`);
-  if (options.includeGuide !== false) lines.push(kind === 'missing' ? 'מה לעשות עכשיו: לשתף בקבוצות שכונתיות, לעדכן וטרינרים קרובים ולבדוק דיווחים חדשים.' : 'מה לעשות עכשיו: לבדוק קולר, לגשת לסריקת שבב, ולהציע מים בזהירות.');
-  return lines.join('\n');
+  const record = normalizeReportRecord(report);
+  const label = normalizeTextField(record.name || record.animalType || 'החיה');
+  const city = normalizeTextField(record.city || 'האזור שלכם');
+  const action = record.reportKind === 'missing' || record.status === PET_STATUS.LOST ? 'אבדה' : 'נמצאה';
+  const parts = [`${action} ${label}`, city ? `ב${city}` : '', 'עזרו לנו להחזיר אותו הביתה.'];
+  if (record.locationText) parts.push(`אזור: ${record.locationText}`);
+  if (record.notes) parts.push(`פרטים: ${record.notes}`);
+  if (record.contactPhone) parts.push(`טלפון: ${record.contactPhone}`);
+  if (options.includeGuide !== false) parts.push('נא לשתף רק פרטים מדויקים ולעדכן אם יש קצה חוט חדש.');
+  return parts.filter(Boolean).join('\n');
 }
 
 function buildFoundReportWhatsAppHref(report = {}, options = {}) {
   const text = buildFoundReportShareText(report, options);
   return `https://wa.me/?text=${encodeURIComponent(text)}`;
-}
-
-
-function buildPetShareMessage(pet = {}, options = {}) {
-  const label = String(pet.name || pet.animalType || pet.label || 'בעל החיים').trim();
-  const place = String(pet.city || pet.locationText || options.fallbackPlace || 'האזור שלכם').trim();
-  const notes = String(pet.notes || pet.details || '').trim();
-  const pageUrl = String(options.pageUrl || pet.pageUrl || '').trim();
-  const lines = [`ראיתם את ${label}?`, `${label} אבד/ה ב${place}.`, 'בואו נעזור להחזיר אותו הביתה.'];
-  if (notes) lines.push(notes);
-  lines.push('שתפו את הפרטים עם מי שיכול לעזור באזור.');
-  if (pageUrl) lines.push(pageUrl);
-  return lines.join(' ');
-}
-
-function buildPetShareHref(pet = {}, options = {}) {
-  return `https://wa.me/?text=${encodeURIComponent(buildPetShareMessage(pet, options))}`;
-}
-
-function buildWhatsAppShare(pet = {}, options = {}) {
-  const label = String(pet.name || pet.animalType || pet.label || 'בעל החיים').trim();
-  const place = String(pet.city || pet.locationText || options.fallbackPlace || 'האזור שלכם').trim();
-  const pageUrl = String(options.pageUrl || pet.pageUrl || window.location.href).trim();
-  const text = [`ראיתם את ${label}?`, `${label} אבד ב${place}.`, 'עזרו לנו להחזיר אותו הביתה.', pageUrl].filter(Boolean).join(' ');
-  return { text, href: `https://wa.me/?text=${encodeURIComponent(text)}` };
 }
 
 function estimateAnimalSizeLabel(rect = null, image = null) {
@@ -2227,32 +2126,25 @@ function estimateAnimalSizeLabel(rect = null, image = null) {
   return 'גדול';
 }
 
+
 function renderFoundReportCards(reports = []) {
   if (!Array.isArray(reports) || !reports.length) return '<div class="empty">עדיין אין דיווחים להצגה.</div>';
   return reports.map((report) => {
-    const shareHref = buildFoundReportWhatsAppHref(report);
-    const posterData = encodeURIComponent(JSON.stringify({
-      city: report.city,
-      locationText: report.locationText,
-      reportedAt: report.reportedAt,
-      lat: report.lat,
-      lng: report.lng,
-      bestMatch: { label: report.animalType || (report.reportKind === 'missing' ? 'חיה שאבדה' : 'חיה שנמצאה') },
-      mode: report.reportKind === 'missing' ? 'lost' : 'found'
-    }));
+    const record = normalizeReportRecord(report);
+    const share = buildWhatsAppShare(record, { url: new URL(buildPetDetailsHref(record), window.location.href).href });
     return `
-    <article class="match-card report-card" data-poster-payload="${posterData}">
-      ${report.imageData ? `<div class="thumb-wrap blur-shell"><img class="pet-result-avatar pet-result-img blur-up" loading="lazy" decoding="async" src="${report.imageData}" alt="${escapeHtml(report.animalType || (report.reportKind === 'missing' ? 'חיה שאבדה' : 'חיה שנמצאה'))}"></div>` : ''}
-      <div class="body stack">
-        <div class="space-between"><strong>${escapeHtml(report.animalType || (report.reportKind === 'missing' ? 'חיה שאבדה' : 'חיה שנמצאה'))}</strong><span class="badge">${escapeHtml(formatReportedAt(report.reportedAt) || 'עכשיו')}</span></div>
-        <div class="row"><span class="chip">${report.reportKind === 'missing' ? 'דיווח אובדן' : 'דיווח מציאה'}</span>${report.status === PET_STATUS.REUNITED ? '<span class="badge">חזר/ה הביתה</span>' : ''}${report.isVerified ? '<span class="badge">נבדק ע"י KBWG</span>' : ''}</div>
-        <div class="row">${report.breed ? `<span class="badge">${escapeHtml(report.breed)}</span>` : ''}${report.colors ? `<span class="badge">${escapeHtml(report.colors)}</span>` : ''}${report.city ? `<span class="badge">${escapeHtml(report.city)}</span>` : ''}</div>
-        <div class="small">${escapeHtml(report.locationText || 'ללא אזור מפורט')}</div>
-        ${report.notes ? `<div class="small">${escapeHtml(report.notes)}</div>` : ''}
-        ${report.audioData ? `<audio controls preload="none" src="${report.audioData}"></audio>` : ''}
-        <div class="card-actions"><a class="button-link secondary small" href="${shareHref}" target="_blank" rel="noopener">שתפו בווטסאפ</a><button class="secondary small js-open-poster" type="button">פוסטר להדפסה</button></div>
-      </div>
-    </article>`;
+      <article class="match-card report-card animalCard">
+        ${record.imageData ? `<div class="thumb-wrap blur-shell"><img class="pet-result-avatar pet-result-img blur-up" loading="lazy" src="${record.imageData}" alt="${escapeHtml(record.name || record.animalType || 'חיה')}"></div>` : ''}
+        <div class="body stack">
+          <div class="space-between"><strong>${escapeHtml(record.name || record.animalType || (record.reportKind === 'missing' ? 'חיה שאבדה' : 'חיה שנמצאה'))}</strong><span class="badge">${escapeHtml(formatReportedAt(record.reportedAt) || 'עכשיו')}</span></div>
+          <div class="row"><span class="chip">${record.reportKind === 'missing' ? 'דיווח אובדן' : record.status === PET_STATUS.REUNITED ? 'חזרה הביתה' : 'דיווח מציאה'}</span></div>
+          <div class="row">${record.breed ? `<span class="badge">${escapeHtml(record.breed)}</span>` : ''}${record.colors ? `<span class="badge">${escapeHtml(record.colors)}</span>` : ''}${record.city ? `<span class="badge">${escapeHtml(record.city)}</span>` : ''}</div>
+          <div class="small">${escapeHtml(record.locationText || 'ללא אזור מפורט')}</div>
+          ${record.notes ? `<div class="small">${escapeHtml(record.notes)}</div>` : ''}
+          <div class="card-actions"><a class="button-link small primary-card-action" href="${escapeHtml(buildPetDetailsHref(record))}">לפרטים ועזרה</a><a class="button-link small" href="${escapeHtml(share.href)}" target="_blank" rel="noopener">שתפו</a></div>
+          ${record.audioData ? `<audio controls preload="none" src="${record.audioData}"></audio>` : ''}
+        </div>
+      </article>`;
   }).join('');
 }
 
@@ -2404,8 +2296,6 @@ function launchConfettiBurst(options = {}) {
   setTimeout(() => layer.remove(), Number(options.duration || 1500));
 }
 
-
-
 if (typeof window !== 'undefined' && !window.__petconnectUiShellBooted) {
   window.__petconnectUiShellBooted = true;
   const runBoot = () => bootUiShell(document);
@@ -2420,6 +2310,14 @@ if (typeof window !== 'undefined') {
   Object.assign(window, {
     hashString,
     slugify,
+    generateUuid,
+    getBrowserUserId,
+    loadRemoteData,
+    loadPetFeed,
+    findPetById,
+    buildPetDetailsHref,
+    buildWhatsAppShare,
+    PET_STATUS,
     safeJsonParse,
     normalizeNumericArray,
     normalizeVector,
@@ -2479,16 +2377,6 @@ if (typeof window !== 'undefined') {
     buildWhatsAppHref,
     buildCommunityWatchHref,
     shareResult,
-    API_CONFIG,
-    loadRemoteData,
-    PET_STATUS,
-    fetchPets,
-    fetchHomeReports,
-    fetchMockHomeReports,
-    generateUuid,
-    updatePetStatus,
-    loadImpactStats,
-    recordImpactEvent,
     setButtonBusy,
     vibrateIfPossible,
     haversineDistanceKm,
@@ -2518,9 +2406,6 @@ if (typeof window !== 'undefined') {
     buildFoundReportWhatsAppHref,
     estimateAnimalSizeLabel,
     renderFoundReportCards,
-    buildPetShareMessage,
-    buildPetShareHref,
-    buildWhatsAppShare,
     mountLanguageSwitcher,
     bootUiShell,
     getResolvedTheme,
@@ -2543,19 +2428,6 @@ if (typeof window !== 'undefined') {
     mountThemeToggle(document);
     applyTheme();
   }
-
-  document.addEventListener('click', async (event) => {
-    const button = event.target.closest('.js-open-poster');
-    if (!button) return;
-    const card = button.closest('[data-poster-payload]');
-    if (!card) return;
-    try {
-      const payload = safeJsonParse(decodeURIComponent(card.getAttribute('data-poster-payload') || ''), null);
-      if (payload) await openPrintablePoster(payload);
-    } catch (error) {
-      console.warn('פתיחת הפוסטר נכשלה:', error);
-    }
-  });
 
   const themeMedia = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
   if (themeMedia && themeMedia.addEventListener) {

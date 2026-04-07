@@ -3,7 +3,7 @@ async function waitForReportHelpers() {
   const needed = [
     'registerServiceWorker','setStatus','clearValidityOnInput','setRequiredValidity','attachCityAutocomplete','attachBreedAutocomplete',
     'loadPendingFoundReportDraft','savePendingFoundReportDraft','clearPendingFoundReportDraft','saveFoundReport','loadFoundReports',
-    'buildFoundReportShareText','buildFoundReportWhatsAppHref','renderFoundReportCards','openPrintablePoster','reverseGeocodeLatLng','shareResult','blobToImage','cropRectToCanvas','extractColorProfile','estimateAnimalSizeLabel','vibrateIfPossible'
+    'buildFoundReportShareText','buildFoundReportWhatsAppHref','renderFoundReportCards','buildPetDetailsHref','reverseGeocodeLatLng','shareResult','blobToImage','cropRectToCanvas','extractColorProfile','estimateAnimalSizeLabel','vibrateIfPossible'
   ];
   const start = Date.now();
   while (Date.now() - start < 8000) {
@@ -115,7 +115,6 @@ async function runReportFoundPage() {
         sizeLabel: sizeEl?.value || '',
         city: cityEl?.value || '',
         locationText: locationEl?.value || '',
-        exactAddress: locationEl?.value || '',
         reportedAt: draft?.reportedAt || new Date().toISOString(),
         notes: detailsEl?.value || '',
         phone: phoneEl?.value || '',
@@ -278,14 +277,12 @@ async function startVoiceRecording() {
       sizeLabel: sizeEl.value,
       city: cityEl.value,
       locationText: locationEl.value,
-      exactAddress: locationEl.value,
       reportedAt: (draft?.reportedAt) || new Date().toISOString(),
       lat: currentLat,
       lng: currentLng,
       notes: detailsEl.value.trim(),
       phone: phoneEl?.value?.trim?.() || '',
       whatsappOptIn: Boolean(whatsappOptinEl?.checked),
-      isAdminVerified: false,
       audioData: currentAudioData,
       sourcePage: draft?.sourcePage || './search.html',
     };
@@ -299,46 +296,60 @@ async function startVoiceRecording() {
     return payload;
   }
 
+
   async function showSuccess(report) {
     successEl.classList.remove('hidden');
+    const detailHref = buildPetDetailsHref(report);
+    const checklistText = [
+      '1. שתפו את המודעה בקבוצות השכונה והווטסאפ המקומי.',
+      '2. התקשרו לווטרינרים קרובים ולמרפאות פתוחות באזור.',
+      '3. בדקו שוב את האזור שבו נראתה החיה לאחרונה, בעיקר בשעות שקטות.',
+      '4. בקשו מחבר אחד לרכז שיחות ועדכונים כדי לחסוך בלבול.',
+      '5. הכינו פנס, מים וכלוב/רצועה אם יוצאים לחיפוש בערב.',
+    ].join('\n');
+    const checklistHref = `data:text/plain;charset=utf-8,${encodeURIComponent(checklistText)}`;
     successEl.innerHTML = `
-      <div class="chip">נשמר</div>
-      <h2 class="section-title" style="margin:0;">המודעה עלתה לאוויר!</h2>
-      <div class="small">עכשיו מתחילים לפעול מסודר: שיתוף, פוסטר ברור וכמה צעדים קטנים שיכולים לעשות הבדל גדול.</div>
+      <div class="chip">הדיווח באוויר</div>
+      <h2 class="section-title" style="margin:0;">המודעה עלתה לאוויר</h2>
+      <div class="small">היא נשמרה עכשיו באתר, מוכנה לשיתוף מהיר ומופיעה גם בדף הפרטים שלה.</div>
       ${isOffline ? '<div class="offline-draft-chip">נשמר גם ללא חיבור · יסתנכרן כשתחזרי לרשת</div>' : ''}
-      <div class="row wrap compact-row">
-        <button id="success-share-btn" class="small" type="button">רוצה לעזור? שתפו</button>
-        <button id="success-wa-btn" class="secondary small" type="button">פוסט לוואטסאפ</button>
-        <button id="success-poster-btn" class="secondary small" type="button">פוסטר להדפסה</button>
-        <a class="button-link secondary small" id="success-106-btn" href="#">טיוטת 106</a>
+      <div class="report-success-grid">
+        <section class="success-checklist-card">
+          <strong>3 צעדים שכדאי לעשות עכשיו</strong>
+          <ol>
+            <li>שתפו את המודעה בקבוצות השכונה.</li>
+            <li>בדקו מרפאות ווטרינריות קרובות.</li>
+            <li>חזרו לאזור האחרון שבו נראתה החיה בשעות רגועות.</li>
+          </ol>
+          <a class="button-link secondary small" download="checklist.txt" href="${checklistHref}">הורדת צ׳ק-ליסט מלא</a>
+        </section>
+        <section class="success-checklist-card">
+          <strong>כלי שיתוף מהירים</strong>
+          <div class="small">אפשר לפתוח דף פרטים מסודר, לשתף לווטסאפ או ליצור פוסטר מוכן להדפסה.</div>
+          <div class="row wrap compact-row">
+            <a class="button-link small primary-card-action" href="${detailHref}">לדף הפרטים</a>
+            <button id="success-share-btn" class="small" type="button">שיתוף מהיר</button>
+            <button id="success-wa-btn" class="secondary small" type="button">ווטסאפ</button>
+            <button id="success-poster-btn" class="secondary small" type="button">פוסטר</button>
+          </div>
+        </section>
       </div>
-      <div class="notice success">
-        <strong>5 דברים שכדאי לעשות עכשיו</strong>
-        <ol class="success-checklist">
-          <li>לחזור לנקודה האחרונה שבה נראתה החיה ולהישאר שם כמה דקות בשקט.</li>
-          <li>לשתף את המודעה בקבוצות הווטסאפ והפייסבוק של השכונה.</li>
-          <li>להכין פוסטר קצר וברור להדפסה ולתלייה.</li>
-          <li>לבדוק מקורות מים, גינות ציבוריות ואזורים מוצלים בסביבה.</li>
-          <li>אם מחפשים בערב — הכינו פנס, מים ורצועה קצרה. <a class="text-link" href="shop.html#rescue-kit">צפו בדגמים מומלצים</a>.</li>
-        </ol>
-      </div>
+      <div class="notice success">טיפ קטן: בפוסטר ובשיתופים עדיף לשמור על טלפון זמין אחד בלבד, כדי שאף דיווח לא ילך לאיבוד.</div>
       ${report.audioData ? '<div class="small">נשמר גם תיאור קולי קצר עם הדיווח.</div>' : ''}`;
     vibrateIfPossible?.([18, 12, 18]);
     const shareText = buildFoundReportShareText(report);
     successEl.querySelector('#success-share-btn')?.addEventListener('click', async () => {
-      const ok = await shareResult({ city: report.city, locationText: report.locationText, reportedAt: report.reportedAt, lat: report.lat, lng: report.lng, bestMatch: { label: report.animalType || 'חיה שנמצאה', animalType: report.animalType, breed: report.breed, colors: report.colors, href: './report-found.html' } });
-      if (!ok && navigator.clipboard?.writeText) await navigator.clipboard.writeText(shareText);
+      const ok = await shareResult({ city: report.city, locationText: report.locationText, reportedAt: report.reportedAt, lat: report.lat, lng: report.lng, bestMatch: { label: report.name || report.animalType || 'חיה שנמצאה', animalType: report.animalType, breed: report.breed, colors: report.colors, href: detailHref } });
+      if (!ok && navigator.clipboard?.writeText) await navigator.clipboard.writeText(`${shareText}\n${new URL(detailHref, window.location.href).href}`);
       setStatus(statusEl, 'הטקסט הוכן לשיתוף.', { tone: 'success' });
     });
     successEl.querySelector('#success-wa-btn')?.addEventListener('click', () => {
-      window.open(buildFoundReportWhatsAppHref(report), '_blank', 'noopener');
+      const href = buildFoundReportWhatsAppHref({ ...report, href: new URL(detailHref, window.location.href).href });
+      window.open(href, '_blank', 'noopener');
     });
     successEl.querySelector('#success-poster-btn')?.addEventListener('click', async () => {
-      await openPosterWindow(report);
-      setStatus(statusEl, 'נפתח פוסטר מוכן להדפסה או שמירה.', { tone: 'success' });
+      await openPosterWindow({ ...report, href: detailHref });
     });
-    const m106 = buildMunicipalReportHref({ city: report.city, locationText: report.locationText, reportedAt: report.reportedAt, lat: report.lat, lng: report.lng, bestMatch: { label: report.animalType || 'חיה שנמצאה', animalType: report.animalType, breed: report.breed, colors: report.colors } });
-    successEl.querySelector('#success-106-btn')?.setAttribute('href', m106);
   }
 
 
@@ -421,14 +432,7 @@ async function startVoiceRecording() {
   posterBtn?.addEventListener('click', async () => {
     const payload = await buildReportPayload().catch(() => null);
     if (!payload) return;
-    await openPrintablePoster({
-      mode: payload.reportKind === 'missing' ? 'lost' : 'found',
-      bestMatch: { label: payload.animalType || 'חיה שנמצאה', animalType: payload.animalType, breed: payload.breed, colors: payload.colors, thumb: payload.imageData },
-      city: payload.city,
-      locationText: payload.locationText,
-      reportedAt: payload.reportedAt,
-      url: window.location.href,
-    });
+    await openPosterWindow(payload);
   });
 
   voiceStartBtn?.addEventListener('click', async () => { try { await startVoiceRecording(); } catch (error) { console.error(error); setStatus(statusEl, 'לא הצלחנו להתחיל הקלטה.', { tone: 'warn' }); } });
